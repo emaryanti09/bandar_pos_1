@@ -2,71 +2,55 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { X, Camera, Keyboard } from 'lucide-react'
+import { Html5Qrcode } from 'html5-qrcode'
 
 interface Props {
   onDetected: (barcode: string) => void
   onClose: () => void
 }
 
-declare class BarcodeDetector {
-  constructor(options?: { formats: string[] })
-  detect(image: HTMLVideoElement): Promise<{ rawValue: string }[]>
-  static getSupportedFormats(): Promise<string[]>
-}
+const SCAN_REGION_ID = 'qr-scan-region'
 
 export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const rafRef = useRef<number>(0)
-  const [supported, setSupported] = useState<boolean | null>(null)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const [mode, setMode] = useState<'camera' | 'manual'>('camera')
   const [error, setError] = useState<string | null>(null)
   const [manualInput, setManualInput] = useState('')
-  const [mode, setMode] = useState<'camera' | 'manual'>('camera')
+  const [scanning, setScanning] = useState(false)
+  const detectedRef = useRef(false)
 
   useEffect(() => {
-    const isSupported = typeof window !== 'undefined' && 'BarcodeDetector' in window
-    setSupported(isSupported)
-    if (!isSupported) setMode('manual')
-  }, [])
+    if (mode !== 'camera') return
 
-  useEffect(() => {
-    if (supported !== true || mode !== 'camera') return
+    let scanner: Html5Qrcode | null = null
+    detectedRef.current = false
 
-    let stream: MediaStream | null = null
-
-    async function startCamera() {
+    async function start() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-        })
-        if (!videoRef.current) return
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
+        scanner = new Html5Qrcode(SCAN_REGION_ID, { verbose: false })
+        scannerRef.current = scanner
+        setScanning(false)
 
-        const detector = new BarcodeDetector({
-          formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code', 'upc_a', 'upc_e'],
-        })
-
-        async function scan() {
-          if (!videoRef.current || videoRef.current.readyState < 2) {
-            rafRef.current = requestAnimationFrame(scan)
-            return
-          }
-          try {
-            const results = await detector.detect(videoRef.current)
-            if (results.length > 0) {
-              onDetected(results[0].rawValue)
-              return
-            }
-          } catch {
-            // frame not ready yet, continue
-          }
-          rafRef.current = requestAnimationFrame(scan)
-        }
-
-        rafRef.current = requestAnimationFrame(scan)
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 15,
+            qrbox: { width: 280, height: 140 },
+            aspectRatio: 1.7,
+            disableFlip: false,
+          },
+          (decodedText) => {
+            if (detectedRef.current) return
+            detectedRef.current = true
+            onDetected(decodedText)
+          },
+          () => { /* scan miss — ignore */ }
+        )
+        setScanning(true)
+        setError(null)
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Gagal akses kamera'
-        if (msg.includes('Permission') || msg.includes('NotAllowed')) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('notallowed')) {
           setError('Izin kamera ditolak. Izinkan akses kamera di browser lalu coba lagi.')
         } else {
           setError(`Kamera tidak tersedia: ${msg}`)
@@ -75,13 +59,20 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
       }
     }
 
-    startCamera()
+    start()
 
     return () => {
-      cancelAnimationFrame(rafRef.current)
-      stream?.getTracks().forEach(t => t.stop())
+      scanner?.stop().catch(() => {})
     }
-  }, [supported, mode, onDetected])
+  }, [mode, onDetected])
+
+  async function switchMode(next: 'camera' | 'manual') {
+    if (scannerRef.current && scanning) {
+      await scannerRef.current.stop().catch(() => {})
+      setScanning(false)
+    }
+    setMode(next)
+  }
 
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -90,29 +81,36 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
     onDetected(val)
   }
 
+  async function handleClose() {
+    if (scannerRef.current && scanning) {
+      await scannerRef.current.stop().catch(() => {})
+    }
+    onClose()
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/80 flex flex-col z-[60]">
+    <div className="fixed inset-0 bg-black z-[60] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/60">
-        <div className="flex items-center gap-2">
-          {supported === true && (
-            <>
-              <button
-                onClick={() => setMode('camera')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${mode === 'camera' ? 'bg-white text-gray-900' : 'text-gray-300 hover:text-white'}`}
-              >
-                <Camera className="w-4 h-4" /> Kamera
-              </button>
-              <button
-                onClick={() => setMode('manual')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${mode === 'manual' ? 'bg-white text-gray-900' : 'text-gray-300 hover:text-white'}`}
-              >
-                <Keyboard className="w-4 h-4" /> Manual
-              </button>
-            </>
-          )}
+      <div className="flex items-center justify-between px-4 py-3 bg-black/60 shrink-0">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => switchMode('camera')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'camera' ? 'bg-white text-gray-900' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Camera className="w-4 h-4" /> Kamera
+          </button>
+          <button
+            onClick={() => switchMode('manual')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'manual' ? 'bg-white text-gray-900' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Keyboard className="w-4 h-4" /> Manual
+          </button>
         </div>
-        <button onClick={onClose} className="text-white hover:text-gray-300 transition-colors">
+        <button onClick={handleClose} className="text-white hover:text-gray-300 transition-colors p-1">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -120,32 +118,28 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
       {/* Camera view */}
       {mode === 'camera' && (
         <div className="flex-1 relative overflow-hidden">
-          <video
-            ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover"
-            playsInline
-            muted
+          {/* html5-qrcode mount target */}
+          <div
+            id={SCAN_REGION_ID}
+            className="w-full h-full"
+            style={{ background: '#000' }}
           />
 
-          {/* Viewfinder overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* Dark corners */}
-            <div className="absolute inset-0 bg-black/40" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 30%, 15% 30%, 15% 70%, 85% 70%, 85% 30%, 0% 30%)' }} />
-            {/* Scan box */}
-            <div className="relative w-72 h-40 border-2 border-white/80 rounded-lg">
-              {/* Corner accents */}
-              <span className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-blue-400 rounded-tl" />
-              <span className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-blue-400 rounded-tr" />
-              <span className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-blue-400 rounded-bl" />
-              <span className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-blue-400 rounded-br" />
-              {/* Scan line */}
-              <div className="absolute inset-x-0 h-0.5 bg-blue-400/80 top-1/2 -translate-y-1/2 animate-pulse" />
-            </div>
-          </div>
+          {/* Overlay instruction */}
+          {scanning && (
+            <p className="absolute bottom-10 inset-x-0 text-center text-white/70 text-sm pointer-events-none">
+              Arahkan kamera ke barcode produk
+            </p>
+          )}
 
-          <p className="absolute bottom-8 inset-x-0 text-center text-white/80 text-sm">
-            Arahkan kamera ke barcode produk
-          </p>
+          {!scanning && !error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2 text-white/60">
+                <Camera className="w-10 h-10 animate-pulse" />
+                <p className="text-sm">Memulai kamera...</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -157,9 +151,9 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
               {error}
             </div>
           )}
-          {supported === false && !error && (
-            <p className="text-gray-300 text-sm text-center max-w-sm">
-              Browser ini tidak mendukung scan kamera otomatis.<br />Ketik barcode secara manual di bawah.
+          {!error && (
+            <p className="text-gray-400 text-sm text-center max-w-sm">
+              Ketik atau tempel barcode produk secara manual.
             </p>
           )}
           <form onSubmit={handleManualSubmit} className="w-full max-w-sm space-y-3">
