@@ -7,7 +7,7 @@ import type { Product } from '@/types'
 
 type Mode = 'satuan' | 'cross'
 
-export default function ModalBukaBungkus({ onClose }: { onClose: () => void }) {
+export default function ModalBukaBungkus({ onClose, onDone }: { onClose: () => void; onDone?: () => void }) {
   const [mode, setMode] = useState<Mode>('cross')
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<Product[]>([])
@@ -68,7 +68,7 @@ export default function ModalBukaBungkus({ onClose }: { onClose: () => void }) {
     } else {
       toast.success(`Berhasil buka ${qtyNum} ${selected.unit} → +${qtyNum * selected.unit_conversion} ${selected.unit_small || 'pcs'}`)
     }
-    onClose()
+    onDone ? onDone() : onClose()
   }
 
   const qtyNum = parseInt(qty || '0')
