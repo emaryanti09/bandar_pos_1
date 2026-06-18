@@ -1,6 +1,7 @@
 'use client'
 
 import { X, Printer } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import type { Transaction, StoreSettings } from '@/types'
 
@@ -12,24 +13,71 @@ interface Props {
 
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   function handlePrint() {
-    window.print()
+    const items = transaction.transaction_items || []
+    const storeName = storeSettings?.store_name || 'Bandar POS'
+    const address = storeSettings?.address || ''
+    const wa = storeSettings?.whatsapp || ''
+    const footer = storeSettings?.footer_note || 'Terima kasih!'
+    const sep = '================================'
+
+    const rows = items.map(item => `
+      <div style="margin-bottom:4px">
+        <div style="font-weight:600">${item.product_name}</div>
+        <div style="display:flex;justify-content:space-between;color:#555">
+          <span>${item.quantity} x ${formatRupiah(item.price)}</span>
+          <span>${formatRupiah(item.subtotal)}</span>
+        </div>
+      </div>`).join('')
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Struk ${transaction.invoice_no}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: monospace; font-size: 9pt; width: 58mm; padding: 2mm; line-height: 1.4; }
+    .center { text-align: center; }
+    .row { display: flex; justify-content: space-between; }
+    .bold { font-weight: bold; }
+    .sep { margin: 4px 0; }
+    .footer { text-align: center; color: #666; margin-top: 6px; }
+    @media print { @page { size: 58mm auto; margin: 0; } body { padding: 1mm; } }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div class="bold" style="font-size:11pt">${storeName}</div>
+    ${address ? `<div>${address}</div>` : ''}
+    ${wa ? `<div>WA: ${wa}</div>` : ''}
+  </div>
+  <div class="sep">${sep}</div>
+  <div class="row"><span>No</span><span>${transaction.invoice_no}</span></div>
+  <div class="row"><span>Kasir</span><span>${transaction.profiles?.full_name || '-'}</span></div>
+  <div class="row"><span>Tgl</span><span>${formatDate(transaction.created_at)}</span></div>
+  <div class="sep">${sep}</div>
+  <div style="margin:6px 0">${rows}</div>
+  <div class="sep">${sep}</div>
+  <div class="row bold" style="font-size:10pt"><span>TOTAL</span><span>${formatRupiah(transaction.total)}</span></div>
+  <div class="row"><span>${transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span><span>${formatRupiah(transaction.paid)}</span></div>
+  ${transaction.payment_method === 'cash' ? `<div class="row"><span>Kembali</span><span>${formatRupiah(transaction.change)}</span></div>` : ''}
+  <div class="sep">${sep}</div>
+  <div class="footer">${footer}</div>
+</body>
+</html>`
+
+    const win = window.open('', '_blank', 'width=300,height=600')
+    if (!win) { toast.error('Popup diblokir browser. Izinkan popup untuk print.'); return }
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print(); win.close() }, 300)
   }
 
   const items = transaction.transaction_items || []
 
   return (
     <>
-      {/* Print styles injected globally */}
-      <style>{`
-        @media print {
-          @page { size: 58mm auto; margin: 0; }
-          body > *:not(#struk-modal) { display: none !important; }
-          #struk-modal { position: fixed; inset: 0; background: white; z-index: 9999; display: flex !important; align-items: flex-start; justify-content: center; padding: 0; }
-          .no-print { display: none !important; }
-          #struk-content { width: 58mm; font-family: monospace; font-size: 9px; padding: 2mm; line-height: 1.3; }
-        }
-      `}</style>
-
       <div id="struk-modal" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl w-full max-w-xs shadow-2xl">
           <div className="flex items-center justify-between p-4 border-b no-print">
