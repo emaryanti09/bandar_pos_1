@@ -60,6 +60,7 @@ export interface StockMovement {
   qty_change: number
   qty_after: number
   note: string | null
+  expired_at: string | null
   reference_id: string | null
   user_id: string | null
   created_at: string
