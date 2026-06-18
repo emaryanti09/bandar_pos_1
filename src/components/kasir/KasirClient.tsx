@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Search, Plus, Minus, Trash2, CreditCard, Banknote, QrCode, Printer, X, PackageOpen } from 'lucide-react'
+import { Search, Plus, Minus, Trash2, CreditCard, PackageOpen, Printer, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { CartItem, Product, Transaction, StoreSettings } from '@/types'
 import { formatRupiah } from '@/lib/utils'
@@ -14,18 +14,33 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
   const [barcodeBuffer, setBarcodeBuffer] = useState('')
-  const [searchResults, setSearchResults] = useState<Product[]>([])
-  const [showSearch, setShowSearch] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
   const [showTambah, setShowTambah] = useState(false)
   const [showBayar, setShowBayar] = useState(false)
   const [showStruk, setShowStruk] = useState(false)
   const [showBukaBungkus, setShowBukaBungkus] = useState(false)
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
   const [newBarcodeForAdd, setNewBarcodeForAdd] = useState('')
-  const searchRef = useRef<HTMLInputElement>(null)
   const barcodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const subtotal = cart.reduce((s, i) => s + i.subtotal, 0)
+
+  // Load produk awal
+  useEffect(() => {
+    fetchProducts('')
+  }, [])
+
+  const fetchProducts = useCallback(async (q: string) => {
+    const res = await fetch(`/api/produk?search=${encodeURIComponent(q)}&limit=40`)
+    const { data } = await res.json()
+    setProducts(data || [])
+  }, [])
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => fetchProducts(search), 300)
+    return () => clearTimeout(t)
+  }, [search, fetchProducts])
 
   // Barcode scanner via keyboard buffer
   useEffect(() => {
@@ -64,16 +79,11 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
     }
   }
 
-  async function handleSearch(q: string) {
-    setSearch(q)
-    if (!q.trim()) { setSearchResults([]); setShowSearch(false); return }
-    const res = await fetch(`/api/produk?search=${encodeURIComponent(q)}&limit=8`)
-    const { data } = await res.json()
-    setSearchResults(data || [])
-    setShowSearch(true)
-  }
-
   function addToCart(product: Product) {
+    if (product.stock <= 0) {
+      toast.error(`Stok ${product.name} habis`)
+      return
+    }
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id)
       if (existing) {
@@ -84,9 +94,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       }
       return [...prev, { product, quantity: 1, subtotal: product.price }]
     })
-    setSearch('')
-    setSearchResults([])
-    setShowSearch(false)
+    toast.success(`${product.name} ditambahkan`, { duration: 1000 })
   }
 
   function updateQty(productId: string, delta: number) {
@@ -115,148 +123,156 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
     setShowStruk(true)
   }
 
+  const cartQty = (productId: string) => cart.find(i => i.product.id === productId)?.quantity ?? 0
+
   return (
-    <div className="max-w-screen-xl mx-auto h-[calc(100vh-56px)] flex flex-col md:flex-row gap-4">
-      {/* LEFT: Search & Cart */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Search bar */}
+    <div className="h-[calc(100vh-56px)] flex gap-3 overflow-hidden">
+
+      {/* LEFT: Grid Produk */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Search */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            ref={searchRef}
             type="text"
             value={search}
-            onChange={e => handleSearch(e.target.value)}
-            placeholder="Cari produk atau scan barcode..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Cari produk..."
+            className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-900"
           />
           {search && (
-            <button onClick={() => { setSearch(''); setSearchResults([]); setShowSearch(false) }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <X className="w-4 h-4" />
             </button>
           )}
+        </div>
 
-          {showSearch && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 z-20 max-h-72 overflow-y-auto">
-              {searchResults.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => addToCart(p)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-blue-50 transition-colors text-left border-b border-gray-50 last:border-0"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">{p.name}</p>
-                    <p className="text-xs text-gray-500">{p.barcode || '-'} · Stok: {p.stock} {p.unit_small || p.unit}</p>
-                  </div>
-                  <p className="font-semibold text-blue-600 text-sm">{formatRupiah(p.price)}</p>
-                </button>
-              ))}
+        {/* Grid */}
+        <div className="flex-1 overflow-y-auto">
+          {products.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">Tidak ada produk</div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+              {products.map(p => {
+                const qty = cartQty(p.id)
+                const habis = p.stock <= 0
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => addToCart(p)}
+                    disabled={habis}
+                    className={`relative bg-white rounded-xl border p-3 text-left transition-all hover:shadow-md hover:border-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${qty > 0 ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'}`}
+                  >
+                    {qty > 0 && (
+                      <span className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {qty}
+                      </span>
+                    )}
+                    {habis && (
+                      <span className="absolute top-2 left-2 bg-red-100 text-red-600 text-xs font-medium px-1.5 py-0.5 rounded-md">Habis</span>
+                    )}
+                    <div className="w-full aspect-square bg-blue-50 rounded-lg mb-2 flex items-center justify-center">
+                      <span className="text-2xl">🛍️</span>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-900 leading-tight line-clamp-2 mb-1">{p.name}</p>
+                    <p className="text-xs text-blue-600 font-bold">{formatRupiah(p.price)}</p>
+                    <p className="text-xs text-gray-400">Stok: {p.stock} {p.unit_small || p.unit}</p>
+                  </button>
+                )
+              })}
+
+              {/* Tambah produk baru */}
               <button
-                onClick={() => { setNewBarcodeForAdd(''); setShowTambah(true); setShowSearch(false) }}
-                className="w-full flex items-center gap-2 px-4 py-3 text-blue-600 hover:bg-blue-50 text-sm font-medium"
+                onClick={() => { setNewBarcodeForAdd(''); setShowTambah(true) }}
+                className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition-all min-h-[120px]"
               >
-                <Plus className="w-4 h-4" /> Tambah produk baru
+                <Plus className="w-6 h-6 text-gray-400" />
+                <span className="text-xs text-gray-400 font-medium">Tambah Produk</span>
               </button>
             </div>
           )}
+        </div>
+      </div>
 
-          {showSearch && search && searchResults.length === 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 z-20">
-              <div className="px-4 py-3 text-sm text-gray-500">Produk tidak ditemukan</div>
-              <button
-                onClick={() => { setNewBarcodeForAdd(search); setShowTambah(true); setShowSearch(false) }}
-                className="w-full flex items-center gap-2 px-4 py-3 text-blue-600 hover:bg-blue-50 text-sm font-medium border-t"
-              >
-                <Plus className="w-4 h-4" /> Tambah produk baru
-              </button>
-            </div>
+      {/* RIGHT: Cart + Ringkasan */}
+      <div className="w-80 flex flex-col gap-2 min-h-0">
+
+        {/* Cart header */}
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-gray-800">Keranjang</h2>
+          {cart.length > 0 && (
+            <button onClick={clearCart} className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1">
+              <Trash2 className="w-3 h-3" /> Kosongkan
+            </button>
           )}
         </div>
 
         {/* Cart items */}
         <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-300">
-              <ShoppingCartIcon className="w-16 h-16 mb-3" />
-              <p className="text-lg">Keranjang kosong</p>
-              <p className="text-sm">Scan barcode atau cari produk</p>
+            <div className="flex flex-col items-center justify-center h-32 text-gray-300">
+              <ShoppingCartIcon className="w-10 h-10 mb-2" />
+              <p className="text-sm">Keranjang kosong</p>
             </div>
           ) : (
             cart.map(item => (
-              <div key={item.product.id} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
+              <div key={item.product.id} className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2.5 flex items-center gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{item.product.name}</p>
-                  <p className="text-sm text-gray-500">{formatRupiah(item.product.price)} / {item.product.unit_small || item.product.unit}</p>
+                  <p className="font-medium text-gray-900 text-sm truncate">{item.product.name}</p>
+                  <p className="text-xs text-gray-400">{formatRupiah(item.product.price)}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => updateQty(item.product.id, -1)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors"
+                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-8 text-center font-bold text-gray-900">{item.quantity}</span>
+                  <span className="w-6 text-center font-bold text-gray-900 text-sm">{item.quantity}</span>
                   <button
                     onClick={() => updateQty(item.product.id, 1)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-green-100 hover:text-green-600 flex items-center justify-center transition-colors"
+                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-green-100 hover:text-green-600 flex items-center justify-center transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="font-bold text-blue-700 w-24 text-right">{formatRupiah(item.subtotal)}</p>
-                <button
-                  onClick={() => removeFromCart(item.product.id)}
-                  className="text-gray-300 hover:text-red-500 transition-colors ml-1"
-                >
-                  <Trash2 className="w-4 h-4" />
+                <p className="font-bold text-blue-700 text-sm w-20 text-right">{formatRupiah(item.subtotal)}</p>
+                <button onClick={() => removeFromCart(item.product.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))
           )}
         </div>
-      </div>
 
-      {/* RIGHT: Summary & Actions */}
-      <div className="w-full md:w-80 flex flex-col gap-3">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <h2 className="font-bold text-gray-700 mb-3">Ringkasan</h2>
-          <div className="flex justify-between items-center py-2 border-b">
-            <span className="text-gray-600">Total Item</span>
-            <span className="font-medium">{cart.reduce((s, i) => s + i.quantity, 0)} pcs</span>
+        {/* Ringkasan & tombol */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 space-y-2">
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Total Item</span>
+            <span className="font-medium text-gray-700">{cart.reduce((s, i) => s + i.quantity, 0)} pcs</span>
           </div>
-          <div className="flex justify-between items-center py-3">
-            <span className="text-gray-800 font-semibold text-lg">Total</span>
-            <span className="font-bold text-2xl text-blue-700">{formatRupiah(subtotal)}</span>
+          <div className="flex justify-between items-center border-t pt-2">
+            <span className="font-bold text-gray-800">Total</span>
+            <span className="font-bold text-xl text-blue-700">{formatRupiah(subtotal)}</span>
           </div>
         </div>
 
         <button
           onClick={() => setShowBukaBungkus(true)}
-          className="flex items-center justify-center gap-2 py-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl font-medium hover:bg-amber-100 transition-colors"
+          className="flex items-center justify-center gap-2 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors"
         >
-          <PackageOpen className="w-5 h-5" />
+          <PackageOpen className="w-4 h-4" />
           Buka Bungkus
         </button>
 
         <button
           onClick={() => cart.length > 0 && setShowBayar(true)}
           disabled={cart.length === 0}
-          className="flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-200"
+          className="flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white rounded-xl font-bold text-base hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-200"
         >
           <CreditCard className="w-5 h-5" />
-          Bayar
+          Bayar {cart.length > 0 && `(${formatRupiah(subtotal)})`}
         </button>
-
-        {cart.length > 0 && (
-          <button
-            onClick={clearCart}
-            className="flex items-center justify-center gap-2 py-2 text-red-500 hover:text-red-700 text-sm transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Kosongkan keranjang
-          </button>
-        )}
 
         {lastTransaction && (
           <button
