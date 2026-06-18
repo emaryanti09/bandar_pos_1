@@ -5,6 +5,7 @@ import { Search, Plus, Minus, Trash2, CreditCard, PackageOpen, Printer, X } from
 import toast from 'react-hot-toast'
 import type { CartItem, Product, Transaction, StoreSettings } from '@/types'
 import { formatRupiah } from '@/lib/utils'
+import { useProfile } from '@/hooks/useProfile'
 import ModalTambahProduk from './ModalTambahProduk'
 import ModalBayar from './ModalBayar'
 import StrukPrint from './StrukPrint'
@@ -22,6 +23,8 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
   const [newBarcodeForAdd, setNewBarcodeForAdd] = useState('')
   const barcodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { profile } = useProfile()
+  const isAdmin = profile?.role === 'admin'
 
   const subtotal = cart.reduce((s, i) => s + i.subtotal, 0)
 
@@ -73,9 +76,13 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       addToCart(data)
       toast.success(`${data.name} ditambahkan`)
     } else {
-      setNewBarcodeForAdd(code)
-      setShowTambah(true)
-      toast(`Barcode ${code} tidak ditemukan. Tambah produk baru?`, { icon: '🔍' })
+      if (isAdmin) {
+        setNewBarcodeForAdd(code)
+        setShowTambah(true)
+        toast(`Barcode ${code} tidak ditemukan. Tambah produk baru?`, { icon: '🔍' })
+      } else {
+        toast.error(`Barcode ${code} tidak ditemukan`)
+      }
     }
   }
 
@@ -181,14 +188,16 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                 )
               })}
 
-              {/* Tambah produk baru */}
-              <button
-                onClick={() => { setNewBarcodeForAdd(''); setShowTambah(true) }}
-                className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition-all min-h-[120px]"
-              >
-                <Plus className="w-6 h-6 text-gray-400" />
-                <span className="text-xs text-gray-400 font-medium">Tambah Produk</span>
-              </button>
+              {/* Tambah produk baru — hanya admin */}
+              {isAdmin && (
+                <button
+                  onClick={() => { setNewBarcodeForAdd(''); setShowTambah(true) }}
+                  className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition-all min-h-[120px]"
+                >
+                  <Plus className="w-6 h-6 text-gray-400" />
+                  <span className="text-xs text-gray-400 font-medium">Tambah Produk</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -286,7 +295,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       </div>
 
       {/* Modals */}
-      {showTambah && (
+      {showTambah && isAdmin && (
         <ModalTambahProduk
           initialBarcode={newBarcodeForAdd}
           onClose={() => setShowTambah(false)}
