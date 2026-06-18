@@ -20,6 +20,9 @@ export interface Product {
   stock_min: number
   expired_at: string | null
   active: boolean
+  linked_product_id: string | null
+  linked_qty: number
+  linked_product?: Product
   created_at: string
   updated_at: string
 }

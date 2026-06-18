@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
 
@@ -15,7 +15,11 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
   const [form, setForm] = useState({
     barcode: '', name: '', unit: 'pcs', unit_small: '', unit_conversion: '1',
     price: '', stock: '0', stock_min: '5', expired_at: '', active: true,
+    linked_product_id: '', linked_qty: '1',
   })
+  const [linkedSearch, setLinkedSearch] = useState('')
+  const [linkedResults, setLinkedResults] = useState<Product[]>([])
+  const [linkedSelected, setLinkedSelected] = useState<Product | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -31,12 +35,41 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
         stock_min: String(product.stock_min),
         expired_at: product.expired_at || '',
         active: product.active,
+        linked_product_id: product.linked_product_id || '',
+        linked_qty: String(product.linked_qty || 1),
       })
+      // Load linked product info jika ada
+      if (product.linked_product_id) {
+        fetch(`/api/produk/${product.linked_product_id}`)
+          .then(r => r.json())
+          .then(({ data }) => { if (data) setLinkedSelected(data) })
+      }
     }
   }, [product])
 
   function set(field: string, val: string | boolean) {
     setForm(prev => ({ ...prev, [field]: val }))
+  }
+
+  async function handleLinkedSearch(q: string) {
+    setLinkedSearch(q)
+    if (!q.trim()) { setLinkedResults([]); return }
+    const res = await fetch(`/api/produk?search=${encodeURIComponent(q)}&limit=8`)
+    const { data } = await res.json()
+    // Jangan tampilkan produk itu sendiri
+    setLinkedResults((data || []).filter((p: Product) => p.id !== product?.id))
+  }
+
+  function selectLinked(p: Product) {
+    setLinkedSelected(p)
+    setForm(prev => ({ ...prev, linked_product_id: p.id }))
+    setLinkedSearch('')
+    setLinkedResults([])
+  }
+
+  function clearLinked() {
+    setLinkedSelected(null)
+    setForm(prev => ({ ...prev, linked_product_id: '', linked_qty: '1' }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,6 +88,8 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
       stock_min: parseInt(form.stock_min) || 5,
       expired_at: form.expired_at || null,
       active: form.active,
+      linked_product_id: form.linked_product_id || null,
+      linked_qty: form.linked_product_id ? (parseInt(form.linked_qty) || 1) : 1,
     }
 
     const url = product ? `/api/produk/${product.id}` : '/api/produk'
@@ -114,6 +149,62 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
             <label className="label">Kadaluarsa</label>
             <input type="date" value={form.expired_at} onChange={e => set('expired_at', e.target.value)} className="input" />
           </div>
+
+          {/* Linked product untuk buka bungkus cross-product */}
+          <div className="border border-dashed border-gray-200 rounded-xl p-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Pecahan Produk <span className="text-xs text-gray-400 font-normal">(opsional)</span></p>
+              <p className="text-xs text-gray-400 mt-0.5">Jika produk ini bisa dipecah ke produk lain. Contoh: Beras 1kg → Beras 250g</p>
+            </div>
+
+            {linkedSelected ? (
+              <div className="flex items-center justify-between bg-amber-50 rounded-lg px-3 py-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{linkedSelected.name}</p>
+                  <p className="text-xs text-gray-500">{linkedSelected.unit_small || linkedSelected.unit}</p>
+                </div>
+                <button type="button" onClick={clearLinked} className="text-gray-400 hover:text-red-500">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  value={linkedSearch}
+                  onChange={e => handleLinkedSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="Cari produk hasil pecahan..."
+                />
+                {linkedResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-10 max-h-40 overflow-y-auto">
+                    {linkedResults.map(p => (
+                      <button key={p.id} type="button" onClick={() => selectLinked(p)}
+                        className="w-full px-3 py-2.5 hover:bg-amber-50 text-left border-b last:border-0 text-sm">
+                        <p className="font-medium text-gray-900">{p.name}</p>
+                        <p className="text-xs text-gray-500">{p.unit_small || p.unit}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {linkedSelected && (
+              <div>
+                <label className="label">1 {form.unit || 'unit besar'} = berapa {linkedSelected.unit_small || linkedSelected.unit}?</label>
+                <input
+                  type="number"
+                  value={form.linked_qty}
+                  onChange={e => set('linked_qty', e.target.value)}
+                  className="input"
+                  min="1"
+                  placeholder="4"
+                />
+              </div>
+            )}
+          </div>
+
           {product && (
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} className="w-4 h-4 accent-blue-600" />
