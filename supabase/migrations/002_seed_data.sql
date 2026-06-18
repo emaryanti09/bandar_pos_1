@@ -143,18 +143,18 @@ BEGIN
   -- ----------------------------------------------------------
   -- Produk
   -- ----------------------------------------------------------
-  INSERT INTO products (id, barcode, name, unit, unit_small, unit_conversion, price, stock, stock_min, expired_at, active, created_at, updated_at)
+  INSERT INTO products (id, kode, barcode, name, unit, unit_small, unit_conversion, price, stock, stock_min, expired_at, active, created_at, updated_at)
   VALUES
-    (v_prod_indomie,   '8999999011004', 'Indomie Goreng',           'dus',    'bks',  40,  3500,   480, 40, '2026-12-31', true, now() - interval '30 days', now()),
-    (v_prod_aqua,      '8999999060804', 'Aqua 600ml',               'dus',    'btl',  24,  4000,   288, 24, '2026-06-30', true, now() - interval '30 days', now()),
-    (v_prod_teh_botol,  '8999999089508', 'Teh Botol Sosro 450ml',   'dus',    'btl',  24,  5000,   192, 24, '2026-06-01', true, now() - interval '30 days', now()),
-    (v_prod_beras,     '8886000000011', 'Beras Premium 5kg',        'karung', NULL,   1,   65000,  50,  5,  NULL,         true, now() - interval '30 days', now()),
-    (v_prod_minyak,    '8886000000022', 'Minyak Goreng 1L',         'dus',    'btl',  12,  18500,  120, 12, '2026-08-31', true, now() - interval '30 days', now()),
-    (v_prod_gula,      '8886000000033', 'Gula Pasir 1kg',           'karung', NULL,   1,   15000,  80,  10, NULL,         true, now() - interval '30 days', now()),
-    (v_prod_kopi,      '8886000000044', 'Kopi Kapal Api Special',   'dus',    'bks',  20,  2500,   200, 20, '2027-01-31', true, now() - interval '30 days', now()),
-    (v_prod_susu,      '8886000000055', 'Susu Ultra Milk 250ml',    'dus',    'ktk',  24,  6500,   144, 24, '2026-09-30', true, now() - interval '30 days', now()),
-    (v_prod_rokok,     '8886000000066', 'Rokok Sampoerna 12',       'slop',   'bks',  10,  28000,  100, 10, NULL,         true, now() - interval '30 days', now()),
-    (v_prod_sabun,     '8886000000077', 'Sabun Lifebuoy 110g',      'dus',    'bh',   48,  4500,   288, 24, NULL,         true, now() - interval '30 days', now())
+    (v_prod_indomie,   'MDG-001', '8999999011004', 'Indomie Goreng',           'dus',    'bks',  40,  3500,   480, 40, '2026-12-31', true, now() - interval '30 days', now()),
+    (v_prod_aqua,      'AIR-001', '8999999060804', 'Aqua 600ml',               'dus',    'btl',  24,  4000,   288, 24, '2026-06-30', true, now() - interval '30 days', now()),
+    (v_prod_teh_botol, 'TEH-001', '8999999089508', 'Teh Botol Sosro 450ml',    'dus',    'btl',  24,  5000,   192, 24, '2026-06-01', true, now() - interval '30 days', now()),
+    (v_prod_beras,     'BRS-001', '8886000000011', 'Beras Premium 5kg',        'karung', NULL,   1,   65000,  50,  5,  NULL,         true, now() - interval '30 days', now()),
+    (v_prod_minyak,    'MNY-001', '8886000000022', 'Minyak Goreng 1L',         'dus',    'btl',  12,  18500,  120, 12, '2026-08-31', true, now() - interval '30 days', now()),
+    (v_prod_gula,      'GLA-001', '8886000000033', 'Gula Pasir 1kg',           'karung', NULL,   1,   15000,  80,  10, NULL,         true, now() - interval '30 days', now()),
+    (v_prod_kopi,      'KPI-001', '8886000000044', 'Kopi Kapal Api Special',   'dus',    'bks',  20,  2500,   200, 20, '2027-01-31', true, now() - interval '30 days', now()),
+    (v_prod_susu,      'SSU-001', '8886000000055', 'Susu Ultra Milk 250ml',    'dus',    'ktk',  24,  6500,   144, 24, '2026-09-30', true, now() - interval '30 days', now()),
+    (v_prod_rokok,     'RKK-001', '8886000000066', 'Rokok Sampoerna 12',       'slop',   'bks',  10,  28000,  100, 10, NULL,         true, now() - interval '30 days', now()),
+    (v_prod_sabun,     'SBN-001', '8886000000077', 'Sabun Lifebuoy 110g',      'dus',    'bh',   48,  4500,   288, 24, NULL,         true, now() - interval '30 days', now())
   ON CONFLICT (id) DO NOTHING;
 
   -- ----------------------------------------------------------

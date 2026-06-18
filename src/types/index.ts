@@ -10,6 +10,7 @@ export interface Profile {
 
 export interface Product {
   id: string
+  kode: string | null
   barcode: string | null
   name: string
   unit: string

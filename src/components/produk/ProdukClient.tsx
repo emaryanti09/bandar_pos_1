@@ -102,6 +102,7 @@ export default function ProdukClient() {
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Produk</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Kode</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Barcode</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-600">Harga</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-600">Stok</th>
@@ -112,9 +113,9 @@ export default function ProdukClient() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">Memuat...</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">Memuat...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">Tidak ada produk</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">Tidak ada produk</td></tr>
               ) : (
                 products.map(p => {
                   const expired = isExpired(p.expired_at)
@@ -128,6 +129,7 @@ export default function ProdukClient() {
                           <p className="text-xs text-gray-500">{p.unit_small ? `${p.unit} (${p.unit_conversion} ${p.unit_small})` : p.unit}</p>
                         </div>
                       </td>
+                      <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-700">{p.kode || '-'}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.barcode || '-'}</td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900">{formatRupiah(p.price)}</td>
                       <td className="px-4 py-3 text-right">

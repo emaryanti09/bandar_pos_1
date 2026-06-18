@@ -13,7 +13,7 @@ interface Props {
 
 export default function ModalProduk({ product, onClose, onSaved }: Props) {
   const [form, setForm] = useState({
-    barcode: '', name: '', unit: 'pcs', unit_small: '', unit_conversion: '1',
+    kode: '', barcode: '', name: '', unit: 'pcs', unit_small: '', unit_conversion: '1',
     price: '', stock: '0', stock_min: '5', expired_at: '', active: true,
     linked_product_id: '', linked_qty: '1',
   })
@@ -25,6 +25,7 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
   useEffect(() => {
     if (product) {
       setForm({
+        kode: product.kode || '',
         barcode: product.barcode || '',
         name: product.name,
         unit: product.unit,
@@ -78,6 +79,7 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
     setLoading(true)
 
     const body = {
+      kode: form.kode || null,
       barcode: form.barcode || null,
       name: form.name,
       unit: form.unit,
@@ -111,9 +113,15 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="label">Barcode</label>
-            <input value={form.barcode} onChange={e => set('barcode', e.target.value)} className="input" placeholder="Opsional" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Kode Produk (SKU)</label>
+              <input value={form.kode} onChange={e => set('kode', e.target.value.toUpperCase())} className="input font-mono" placeholder="BRS-001" />
+            </div>
+            <div>
+              <label className="label">Barcode</label>
+              <input value={form.barcode} onChange={e => set('barcode', e.target.value)} className="input" placeholder="Opsional" />
+            </div>
           </div>
           <div>
             <label className="label">Nama Produk *</label>
