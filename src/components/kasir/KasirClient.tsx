@@ -171,8 +171,8 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                     {habis && (
                       <span className="absolute top-2 left-2 bg-red-100 text-red-600 text-xs font-medium px-1.5 py-0.5 rounded-md">Habis</span>
                     )}
-                    <div className="w-full aspect-square bg-blue-50 rounded-lg mb-2 flex items-center justify-center">
-                      <span className="text-2xl">🛍️</span>
+                    <div className={`w-full py-3 rounded-lg mb-2 flex items-center justify-center ${getBgColor(p.name)}`}>
+                      <span className="text-xl font-black text-white tracking-wide">{getInitials(p.name)}</span>
                     </div>
                     <p className="text-xs font-semibold text-gray-900 leading-tight line-clamp-2 mb-1">{p.name}</p>
                     <p className="text-xs text-blue-600 font-bold">{formatRupiah(p.price)}</p>
@@ -316,6 +316,24 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       )}
     </div>
   )
+}
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/)
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return (words[0][0] + words[1][0]).toUpperCase()
+}
+
+const BG_COLORS = [
+  'bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-orange-500',
+  'bg-pink-500', 'bg-cyan-500', 'bg-rose-500', 'bg-teal-500',
+  'bg-indigo-500', 'bg-amber-500',
+]
+
+function getBgColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length]
 }
 
 function ShoppingCartIcon({ className }: { className?: string }) {
