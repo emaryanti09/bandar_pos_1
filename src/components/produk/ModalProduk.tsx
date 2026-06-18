@@ -8,12 +8,13 @@ import type { Product } from '@/types'
 interface Props {
   product: Product | null
   onClose: () => void
-  onSaved: () => void
+  onSaved: (savedProduct?: Product) => void
+  initialBarcode?: string
 }
 
-export default function ModalProduk({ product, onClose, onSaved }: Props) {
+export default function ModalProduk({ product, onClose, onSaved, initialBarcode }: Props) {
   const [form, setForm] = useState({
-    kode: '', barcode: '', name: '', unit: 'pcs', unit_small: '', unit_conversion: '1',
+    kode: '', barcode: initialBarcode || '', name: '', unit: 'pcs', unit_small: '', unit_conversion: '1',
     price: '', stock: '0', stock_min: '5', expired_at: '', active: true,
     linked_product_id: '', linked_qty: '1',
   })
@@ -102,7 +103,7 @@ export default function ModalProduk({ product, onClose, onSaved }: Props) {
 
     if (!res.ok) { toast.error(result.error || 'Gagal menyimpan'); return }
     toast.success(product ? 'Produk diperbarui' : 'Produk ditambahkan')
-    onSaved()
+    onSaved(result.data || undefined)
   }
 
   return (
