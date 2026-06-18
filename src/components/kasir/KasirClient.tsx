@@ -171,7 +171,6 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                     disabled={habis}
                     className={`relative bg-white rounded-xl border p-3 text-left transition-all hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                       qty > 0 ? 'border-blue-400 ring-2 ring-blue-100 hover:border-blue-400' :
-                      minStock ? 'border-red-200 hover:border-red-300' :
                       'border-gray-100 hover:border-blue-300'
                     }`}
                   >
@@ -183,15 +182,12 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                     {habis && (
                       <span className="absolute top-2 left-2 bg-red-100 text-red-600 text-xs font-medium px-1.5 py-0.5 rounded-md">Habis</span>
                     )}
-                    {minStock && !habis && (
-                      <span className="absolute top-2 left-2 bg-red-100 text-red-600 text-xs font-medium px-1.5 py-0.5 rounded-md">Min!</span>
-                    )}
                     <div className={`w-full py-3 rounded-lg mb-2 flex items-center justify-center ${getBgColor(p.name)}`}>
                       <span className="text-xl font-black text-white tracking-wide">{getInitials(p.name)}</span>
                     </div>
                     <p className="text-xs font-semibold text-gray-900 leading-tight line-clamp-2 mb-1">{p.name}</p>
                     <p className="text-xs text-blue-600 font-bold">{formatRupiah(p.price)}</p>
-                    <p className={`text-xs ${minStock || habis ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                    <p className={`text-xs ${habis ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
                       Stok: {p.stock} {p.unit_small || p.unit}
                     </p>
                   </button>
