@@ -23,13 +23,13 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
     if (mode !== 'camera') return
 
     let scanner: Html5Qrcode | null = null
+    let isRunning = false
     detectedRef.current = false
 
     async function start() {
       try {
         scanner = new Html5Qrcode(SCAN_REGION_ID, { verbose: false })
         scannerRef.current = scanner
-        setScanning(false)
 
         await scanner.start(
           { facingMode: 'environment' },
@@ -46,6 +46,7 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
           },
           () => { /* scan miss — ignore */ }
         )
+        isRunning = true
         setScanning(true)
         setError(null)
       } catch (err) {
@@ -62,13 +63,21 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
     start()
 
     return () => {
-      scanner?.stop().catch(() => {})
+      if (isRunning && scanner) {
+        scanner.stop().catch(() => {})
+      }
     }
   }, [mode, onDetected])
 
   async function switchMode(next: 'camera' | 'manual') {
-    if (scannerRef.current && scanning) {
-      await scannerRef.current.stop().catch(() => {})
+    if (scannerRef.current) {
+      try {
+        const state = scannerRef.current.getState()
+        // state 2 = SCANNING, state 3 = PAUSED
+        if (state === 2 || state === 3) {
+          await scannerRef.current.stop()
+        }
+      } catch { /* ignore */ }
       setScanning(false)
     }
     setMode(next)
@@ -82,8 +91,13 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
   }
 
   async function handleClose() {
-    if (scannerRef.current && scanning) {
-      await scannerRef.current.stop().catch(() => {})
+    if (scannerRef.current) {
+      try {
+        const state = scannerRef.current.getState()
+        if (state === 2 || state === 3) {
+          await scannerRef.current.stop()
+        }
+      } catch { /* ignore */ }
     }
     onClose()
   }
