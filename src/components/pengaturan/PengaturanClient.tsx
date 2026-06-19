@@ -78,7 +78,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
               className="input" />
           </div>
           <button type="submit" disabled={savingSettings}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-60">
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-60">
             <Save className="w-4 h-4" />
             {savingSettings ? 'Menyimpan...' : 'Simpan Pengaturan'}
           </button>
@@ -90,7 +90,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-gray-800">Kelola User</h2>
           <button onClick={() => { setEditUser(null); setShowUserModal(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700">
             <Plus className="w-4 h-4" /> Tambah User
           </button>
         </div>
@@ -99,7 +99,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
           {users.map(u => (
             <div key={u.id} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                   {u.full_name?.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -110,7 +110,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
               <div className="flex items-center gap-2">
                 {!u.active && <span className="text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Nonaktif</span>}
                 <button onClick={() => { setEditUser(u); setShowUserModal(true) }}
-                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button onClick={() => handleDeleteUser(u)}
@@ -210,13 +210,13 @@ function ModalUser({ user, onClose, onSaved }: { user: Profile | null; onClose: 
           </div>
           {user && (
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4 accent-blue-600" />
+              <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4 accent-red-600" />
               <span className="text-sm text-gray-700">Akun aktif</span>
             </label>
           )}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 font-medium">Batal</button>
-            <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-60">
+            <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-60">
               {loading ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>

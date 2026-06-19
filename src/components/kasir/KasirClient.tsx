@@ -171,7 +171,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
               onFocus={() => search && setShowSearchResults(true)}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 150)}
               placeholder="Cari nama / barcode produk..."
-              className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-900"
+              className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
             />
             {search && (
               <button
@@ -187,7 +187,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
           {/* Scan kamera */}
           <button
             onClick={() => setShowScanner(true)}
-            className="flex items-center justify-center w-11 h-11 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all shrink-0 shadow-sm shadow-blue-200"
+            className="flex items-center justify-center w-11 h-11 bg-red-600 text-white rounded-xl hover:bg-red-700 active:scale-95 transition-all shrink-0 shadow-sm shadow-red-200"
             title="Scan barcode kamera"
           >
             <Camera className="w-5 h-5" />
@@ -214,7 +214,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => addToCart(p)}
                   disabled={habis}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 active:bg-blue-100 border-b last:border-0 text-left disabled:opacity-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 active:bg-red-100 border-b last:border-0 text-left disabled:opacity-50 transition-colors"
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${getBgColor(p.name)}`}>
                     <span className="text-xs font-black text-white">{getInitials(p.name)}</span>
@@ -257,7 +257,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
               <div
                 key={item.product.id}
                 className={`bg-white rounded-2xl border shadow-sm px-4 py-3 transition-all ${
-                  lastAdded === item.product.id ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'
+                  lastAdded === item.product.id ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-100'
                 }`}
               >
                 {/* Top row: name + delete */}
@@ -293,7 +293,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                       value={item.quantity}
                       min={1}
                       onChange={e => setQtyDirect(item.product.id, parseInt(e.target.value) || 0)}
-                      className="w-12 h-8 text-center font-bold text-gray-900 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                      className="w-12 h-8 text-center font-bold text-gray-900 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
                     />
                     <button
                       onClick={() => updateQty(item.product.id, 1)}
@@ -302,7 +302,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                       <Plus className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <p className="font-bold text-blue-700 text-base">{formatRupiah(item.subtotal)}</p>
+                  <p className="font-bold text-red-700 text-base">{formatRupiah(item.subtotal)}</p>
                 </div>
               </div>
             ))}
@@ -329,14 +329,14 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
               </button>
             )}
           </div>
-          <span className="font-bold text-xl text-blue-700">{formatRupiah(subtotal)}</span>
+          <span className="font-bold text-xl text-red-700">{formatRupiah(subtotal)}</span>
         </div>
 
         {/* Bayar button */}
         <button
           onClick={() => cart.length > 0 && setShowBayar(true)}
           disabled={cart.length === 0}
-          className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-base hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-200"
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-red-600 text-white rounded-2xl font-bold text-base hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-red-200"
         >
           <CreditCard className="w-5 h-5" />
           {cart.length === 0 ? 'Bayar' : `Bayar ${formatRupiah(subtotal)}`}

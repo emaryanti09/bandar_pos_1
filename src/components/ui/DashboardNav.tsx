@@ -47,7 +47,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
             height={34}
             className="rounded-lg object-contain bg-white p-0.5 shrink-0"
           />
-          <span className="font-bold text-lg leading-tight">Bandar POS</span>
+          <span className="font-bold text-lg leading-tight">Bandar Frozen Food</span>
         </div>
 
         {/* Desktop nav */}

@@ -114,7 +114,7 @@ export default function LaporanClient({ storeSettings }: { storeSettings: StoreS
               <Download className="w-4 h-4" /> Export Excel
             </button>
             <button onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700">
               <Printer className="w-4 h-4" /> Print
             </button>
           </div>
@@ -124,7 +124,7 @@ export default function LaporanClient({ storeSettings }: { storeSettings: StoreS
         <div className="flex flex-wrap gap-2 no-print">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'}`}>
               {t.label}
             </button>
           ))}
@@ -136,12 +136,12 @@ export default function LaporanClient({ storeSettings }: { storeSettings: StoreS
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-600">Dari:</label>
               <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-600">Sampai:</label>
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
           </div>
         )}
@@ -211,7 +211,7 @@ function TransaksiTable({ transactions }: { transactions: Transaction[] }) {
                 <td className="px-4 py-3 text-gray-600">{formatDate(t.created_at)}</td>
                 <td className="px-4 py-3 text-gray-700">{t.profiles?.full_name || '-'}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {t.payment_method.toUpperCase()}
                   </span>
                 </td>
@@ -219,7 +219,7 @@ function TransaksiTable({ transactions }: { transactions: Transaction[] }) {
               </tr>
               {expandedId === t.id && t.transaction_items && (
                 <tr key={`${t.id}-detail`}>
-                  <td colSpan={5} className="px-4 pb-3 bg-blue-50">
+                  <td colSpan={5} className="px-4 pb-3 bg-red-50">
                     <div className="pl-4 space-y-1">
                       {t.transaction_items.map(item => (
                         <div key={item.id} className="flex justify-between text-xs text-gray-600">

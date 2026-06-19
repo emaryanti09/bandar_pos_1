@@ -143,7 +143,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
               Tutup
             </button>
             <button onClick={handlePrint}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700">
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700">
               <Printer className="w-4 h-4" /> Print
             </button>
           </div>

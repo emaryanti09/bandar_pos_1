@@ -162,12 +162,12 @@ export default function BarcodeScannerModal({ onDetected, onClose }: Props) {
               value={manualInput}
               onChange={e => setManualInput(e.target.value)}
               placeholder="Ketik barcode lalu tekan Enter"
-              className="w-full px-4 py-3 rounded-xl text-gray-900 text-center text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 rounded-xl text-gray-900 text-center text-lg font-mono focus:outline-none focus:ring-2 focus:ring-red-400"
             />
             <button
               type="submit"
               disabled={!manualInput.trim()}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+              className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-40 transition-colors"
             >
               Cari Produk
             </button>

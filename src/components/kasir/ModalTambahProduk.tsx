@@ -118,7 +118,7 @@ export default function ModalTambahProduk({ initialBarcode = '', onClose, onSave
               Batal
             </button>
             <button type="submit" disabled={loading}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-60">
+              className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-60">
               {loading ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>

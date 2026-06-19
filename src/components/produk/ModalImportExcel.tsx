@@ -85,7 +85,7 @@ export default function ModalImportExcel({ onClose, onSaved }: Props) {
               <Download className="w-4 h-4" /> Download Template
             </button>
             <button onClick={() => fileRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-600 hover:bg-blue-100">
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 hover:bg-red-100">
               <Upload className="w-4 h-4" /> Pilih File Excel
             </button>
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="hidden" />
@@ -127,7 +127,7 @@ export default function ModalImportExcel({ onClose, onSaved }: Props) {
         <div className="flex gap-3 p-5 border-t">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50">Batal</button>
           <button onClick={handleImport} disabled={loading || rows.length === 0}
-            className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40">
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-40">
             {loading ? 'Mengimport...' : `Import ${rows.length} Produk`}
           </button>
         </div>

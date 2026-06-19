@@ -6,8 +6,8 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bandar POS",
-  description: "Sistem Point of Sale",
+  title: "Bandar Frozen Food",
+  description: "Sistem Point of Sale - Bandar Frozen Food",
 };
 
 export default function RootLayout({

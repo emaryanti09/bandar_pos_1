@@ -70,9 +70,9 @@ export default function ModalBayar({ cart, subtotal, onClose, onSuccess }: Props
 
         <div className="p-5 space-y-4">
           {/* Total */}
-          <div className="bg-blue-50 rounded-xl p-4 text-center">
-            <p className="text-sm text-blue-600 font-medium">Total Tagihan</p>
-            <p className="text-3xl font-bold text-blue-700">{formatRupiah(subtotal)}</p>
+          <div className="bg-red-50 rounded-xl p-4 text-center">
+            <p className="text-sm text-red-600 font-medium">Total Tagihan</p>
+            <p className="text-3xl font-bold text-red-700">{formatRupiah(subtotal)}</p>
           </div>
 
           {/* Metode */}
@@ -81,13 +81,13 @@ export default function ModalBayar({ cart, subtotal, onClose, onSuccess }: Props
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setMethod('cash')}
-                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-medium transition-colors ${method === 'cash' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-medium transition-colors ${method === 'cash' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <Banknote className="w-5 h-5" /> Cash
               </button>
               <button
                 onClick={() => setMethod('qris')}
-                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-medium transition-colors ${method === 'qris' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-medium transition-colors ${method === 'qris' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <QrCode className="w-5 h-5" /> QRIS
               </button>
@@ -102,7 +102,7 @@ export default function ModalBayar({ cart, subtotal, onClose, onSuccess }: Props
                   type="number"
                   value={paid}
                   onChange={e => setPaid(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xl font-bold text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-xl font-bold text-gray-900"
                   placeholder="0"
                   min={subtotal}
                   autoFocus
@@ -111,12 +111,12 @@ export default function ModalBayar({ cart, subtotal, onClose, onSuccess }: Props
               <div className="flex flex-wrap gap-2">
                 {QUICK_AMOUNTS.filter(a => a >= subtotal || a === QUICK_AMOUNTS[QUICK_AMOUNTS.length - 1]).slice(0, 4).map(a => (
                   <button key={a} onClick={() => setPaid(String(a))}
-                    className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-blue-100 rounded-lg text-gray-700 font-medium transition-colors">
+                    className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-red-100 rounded-lg text-gray-700 font-medium transition-colors">
                     {formatRupiah(a)}
                   </button>
                 ))}
                 <button onClick={() => setPaid(String(subtotal))}
-                  className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-blue-100 rounded-lg text-gray-700 font-medium transition-colors">
+                  className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-red-100 rounded-lg text-gray-700 font-medium transition-colors">
                   Pas
                 </button>
               </div>
@@ -143,7 +143,7 @@ export default function ModalBayar({ cart, subtotal, onClose, onSuccess }: Props
             <button
               onClick={handleBayar}
               disabled={loading || (method === 'cash' && change < 0)}
-              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+              className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-40 transition-colors"
             >
               {loading ? 'Proses...' : 'Bayar'}
             </button>

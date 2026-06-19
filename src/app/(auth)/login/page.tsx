@@ -36,9 +36,9 @@ export default function LoginPage() {
           <Image
             src="/logo.jpeg"
             alt="Bandar Frozen Food"
-            width={130}
-            height={130}
-            className="rounded-2xl shadow-md mb-3 object-contain"
+            width={180}
+            height={180}
+            className="rounded-3xl shadow-lg mb-3 object-contain"
             priority
           />
           <p className="text-gray-500 text-sm">Masuk ke akun Anda</p>

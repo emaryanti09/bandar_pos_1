@@ -71,7 +71,7 @@ export default function ProdukClient() {
             <Upload className="w-4 h-4" /> Import Excel
           </button>
           <button onClick={() => { setEditProduct(null); setShowModal(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors">
             <Plus className="w-4 h-4" /> Tambah Produk
           </button>
         </div>
@@ -81,7 +81,7 @@ export default function ProdukClient() {
       <div className="flex gap-2">
         {tabs.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'}`}>
             {t.icon} {t.label}
           </button>
         ))}
@@ -92,7 +92,7 @@ export default function ProdukClient() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Cari nama atau barcode..."
-          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm" />
       </div>
 
       {/* Table */}
@@ -129,7 +129,7 @@ export default function ProdukClient() {
                           <p className="text-xs text-gray-500">{p.unit_small ? `${p.unit} (${p.unit_conversion} ${p.unit_small})` : p.unit}</p>
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-700">{p.kode || '-'}</td>
+                      <td className="px-4 py-3 font-mono text-xs font-semibold text-red-700">{p.kode || '-'}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.barcode || '-'}</td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900">{formatRupiah(p.price)}</td>
                       <td className="px-4 py-3 text-right">
@@ -152,7 +152,7 @@ export default function ProdukClient() {
                             <RefreshCw className="w-4 h-4" />
                           </button>
                           <button onClick={() => { setEditProduct(p); setShowModal(true) }}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(p.id, p.name)}
