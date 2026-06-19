@@ -29,6 +29,9 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const barcodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastAddedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const scanInputBuffer = useRef('')
+  const scanInputTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastKeyTime = useRef<number>(0)
   const { profile } = useProfile()
   const isAdmin = profile?.role === 'admin'
 
@@ -170,6 +173,31 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
               onChange={e => setSearch(e.target.value)}
               onFocus={() => search && setShowSearchResults(true)}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 150)}
+              onKeyDown={e => {
+                const now = Date.now()
+                const gap = now - lastKeyTime.current
+                lastKeyTime.current = now
+
+                if (e.key === 'Enter') {
+                  const buf = scanInputBuffer.current
+                  scanInputBuffer.current = ''
+                  if (scanInputTimer.current) clearTimeout(scanInputTimer.current)
+                  // gap < 100ms dari karakter terakhir + buffer >= 3 = scanner HID
+                  if (buf.length >= 3 && gap < 100) {
+                    e.preventDefault()
+                    setSearch('')
+                    setShowSearchResults(false)
+                    handleBarcodeSearch(buf)
+                  }
+                  return
+                }
+
+                if (e.key.length === 1) {
+                  scanInputBuffer.current += e.key
+                  if (scanInputTimer.current) clearTimeout(scanInputTimer.current)
+                  scanInputTimer.current = setTimeout(() => { scanInputBuffer.current = '' }, 500)
+                }
+              }}
               placeholder="Cari nama / barcode produk..."
               className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
             />
