@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, Upload, Edit2, Trash2, Package, AlertTriangle, PackageOpen, RefreshCw } from 'lucide-react'
+import { Plus, Search, Upload, Edit2, Trash2, Package, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
 import { formatRupiah, formatDateShort, isExpired, isExpiringSoon } from '@/lib/utils'
@@ -24,10 +24,12 @@ export default function ProdukClient() {
   const [showPembelian, setShowPembelian] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [opnameProduct, setOpnameProduct] = useState<Product | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const loadProducts = useCallback(async () => {
     setLoading(true)
-    let url = `/api/produk?limit=200`
+    let url = `/api/produk?limit=500`
     if (search) url += `&search=${encodeURIComponent(search)}`
     if (tab === 'hampir_habis') url += `&low_stock=true`
     if (tab === 'kadaluarsa') url += `&expiring=true`
@@ -39,7 +41,7 @@ export default function ProdukClient() {
     setLoading(false)
   }, [search, tab])
 
-  useEffect(() => { loadProducts() }, [loadProducts])
+  useEffect(() => { loadProducts(); setPage(1) }, [loadProducts])
 
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Hapus produk "${name}"?`)) return
@@ -47,6 +49,9 @@ export default function ProdukClient() {
     if (res.ok) { toast.success('Produk dihapus'); loadProducts() }
     else toast.error('Gagal menghapus')
   }
+
+  const totalPages = Math.max(1, Math.ceil(products.length / pageSize))
+  const paginated = products.slice((page - 1) * pageSize, page * pageSize)
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'semua', label: 'Semua', icon: <Package className="w-4 h-4" /> },
@@ -117,7 +122,7 @@ export default function ProdukClient() {
               ) : products.length === 0 ? (
                 <tr><td colSpan={8} className="text-center py-12 text-gray-400">Tidak ada produk</td></tr>
               ) : (
-                products.map(p => {
+                paginated.map(p => {
                   const expired = isExpired(p.expired_at)
                   const expiringSoon = isExpiringSoon(p.expired_at)
                   const lowStock = p.stock <= p.stock_min
@@ -168,6 +173,81 @@ export default function ProdukClient() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination footer */}
+        {!loading && products.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50 flex-wrap gap-2">
+            {/* Info + page size */}
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              <span>
+                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, products.length)} dari {products.length} produk
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs">Baris:</span>
+                <select
+                  value={pageSize}
+                  onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+                  className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+                >
+                  {[5, 10, 25, 50].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Page nav */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >«</button>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Page number pills */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+                .reduce<(number | 'ellipsis')[]>((acc, n, idx, arr) => {
+                  if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('ellipsis')
+                  acc.push(n)
+                  return acc
+                }, [])
+                .map((item, idx) =>
+                  item === 'ellipsis' ? (
+                    <span key={`e${idx}`} className="px-1 text-gray-400 text-xs">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setPage(item as number)}
+                      className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        page === item ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >{item}</button>
+                  )
+                )}
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={page === totalPages}
+                className="px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >»</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (
