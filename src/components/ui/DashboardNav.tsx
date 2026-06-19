@@ -36,7 +36,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
   }
 
   return (
-    <header className="bg-red-700 text-white shadow-md">
+    <header className="bg-red-700 text-white shadow-md sticky top-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
         {/* Logo + Brand */}
         <div className="flex items-center gap-2.5">
