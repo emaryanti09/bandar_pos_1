@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Search, Plus, Trash2, Camera } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
@@ -27,6 +27,12 @@ export default function ModalPembelian({ onClose, onSaved }: Props) {
   const [loading, setLoading] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
   const [newProductBarcode, setNewProductBarcode] = useState<string | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const scanBuffer = useRef('')
+  const scanTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastKey = useRef<number>(0)
+
+  useEffect(() => { searchRef.current?.focus() }, [])
 
   async function handleSearch(q: string) {
     setSearch(q)
@@ -114,8 +120,31 @@ export default function ModalPembelian({ onClose, onSaved }: Props) {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
+                  ref={searchRef}
                   value={search}
                   onChange={e => handleSearch(e.target.value)}
+                  onKeyDown={e => {
+                    const now = Date.now()
+                    const gap = now - lastKey.current
+                    lastKey.current = now
+                    if (e.key === 'Enter') {
+                      const buf = scanBuffer.current
+                      scanBuffer.current = ''
+                      if (scanTimer.current) clearTimeout(scanTimer.current)
+                      if (buf.length >= 3 && gap < 100) {
+                        e.preventDefault()
+                        setSearch('')
+                        setResults([])
+                        handleScanResult(buf)
+                      }
+                      return
+                    }
+                    if (e.key.length === 1) {
+                      scanBuffer.current += e.key
+                      if (scanTimer.current) clearTimeout(scanTimer.current)
+                      scanTimer.current = setTimeout(() => { scanBuffer.current = '' }, 500)
+                    }
+                  }}
                   className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="Cari produk..."
                   disabled={!!selected}
