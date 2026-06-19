@@ -38,6 +38,11 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const subtotal = cart.reduce((s, i) => s + i.subtotal, 0)
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0)
 
+  // Auto-focus search saat mount dan setelah tiap transaksi
+  useEffect(() => {
+    searchRef.current?.focus()
+  }, [])
+
   // Search produk saat teks berubah
   const fetchSearchResults = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchResults([]); setShowSearchResults(false); return }
@@ -119,6 +124,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
     toast.success(`${product.name} +1`, { duration: 800 })
     setSearch('')
     setShowSearchResults(false)
+    setTimeout(() => searchRef.current?.focus(), 50)
   }
 
   function updateQty(productId: string, delta: number) {
