@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { ShoppingCart, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,14 +29,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-600 to-red-800 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-4">
-            <ShoppingCart className="w-8 h-8 text-blue-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Bandar POS</h1>
-          <p className="text-gray-500 text-sm mt-1">Masuk ke akun Anda</p>
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src="/logo.jpeg"
+            alt="Bandar Frozen Food"
+            width={130}
+            height={130}
+            className="rounded-2xl shadow-md mb-3 object-contain"
+            priority
+          />
+          <p className="text-gray-500 text-sm">Masuk ke akun Anda</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -45,8 +51,8 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              placeholder="admin@bandarpas.com"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
+              placeholder="admin@bandarpos.com"
               required
             />
           </div>
@@ -57,7 +63,7 @@ export default function LoginPage() {
                 type={showPass ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 pr-12"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 pr-12"
                 placeholder="••••••••"
                 required
               />
@@ -73,7 +79,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? 'Masuk...' : 'Masuk'}
           </button>

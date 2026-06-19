@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ShoppingCart, Package, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import type { Profile } from '@/types'
@@ -35,11 +36,18 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
   }
 
   return (
-    <header className="bg-blue-700 text-white shadow-md">
+    <header className="bg-red-700 text-white shadow-md">
       <div className="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
-        <div className="flex items-center gap-3">
-          <ShoppingCart className="w-6 h-6" />
-          <span className="font-bold text-lg">Bandar POS</span>
+        {/* Logo + Brand */}
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/logo.jpeg"
+            alt="Bandar Frozen Food"
+            width={34}
+            height={34}
+            className="rounded-lg object-contain bg-white p-0.5 shrink-0"
+          />
+          <span className="font-bold text-lg leading-tight">Bandar POS</span>
         </div>
 
         {/* Desktop nav */}
@@ -52,7 +60,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
                 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 pathname.startsWith(href) && (href !== '/kasir' || pathname === '/kasir')
                   ? 'bg-white/20 text-white'
-                  : 'text-blue-100 hover:bg-white/10'
+                  : 'text-red-100 hover:bg-white/10'
               )}
             >
               <Icon className="w-4 h-4" />
@@ -64,11 +72,11 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
         <div className="hidden md:flex items-center gap-3">
           <div className="text-right text-sm">
             <p className="font-medium">{profile.full_name}</p>
-            <p className="text-blue-200 text-xs capitalize">{profile.role}</p>
+            <p className="text-red-200 text-xs capitalize">{profile.role}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-100 hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-100 hover:bg-white/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Keluar
@@ -83,10 +91,10 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-blue-600 bg-blue-700 px-4 pb-4">
+        <div className="md:hidden border-t border-red-600 bg-red-700 px-4 pb-4">
           <div className="pt-3 pb-2 text-sm">
             <p className="font-medium">{profile.full_name}</p>
-            <p className="text-blue-200 text-xs capitalize">{profile.role}</p>
+            <p className="text-red-200 text-xs capitalize">{profile.role}</p>
           </div>
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
@@ -95,7 +103,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
               onClick={() => setOpen(false)}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-1',
-                pathname === href ? 'bg-white/20' : 'text-blue-100 hover:bg-white/10'
+                pathname === href ? 'bg-white/20' : 'text-red-100 hover:bg-white/10'
               )}
             >
               <Icon className="w-4 h-4" />
@@ -104,7 +112,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
           ))}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-blue-100 hover:bg-white/10 w-full mt-2"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-100 hover:bg-white/10 w-full mt-2"
           >
             <LogOut className="w-4 h-4" />
             Keluar
