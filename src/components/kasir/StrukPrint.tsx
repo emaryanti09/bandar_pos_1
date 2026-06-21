@@ -11,8 +11,7 @@ interface Props {
   onClose: () => void
 }
 
-// Logo di-load saat runtime dari /logo.jpeg — pakai URL absolut agar bisa di iframe/preview
-const LOGO_URL = '/logo.jpeg'
+const LOGO_URL = '/logo_hitam.png'
 
 function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings | null): string {
   const items = transaction.transaction_items || []
@@ -57,8 +56,9 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   .right { text-align: right; }
   .center { text-align: center; }
   .logo-wrap { text-align: center; margin-bottom: 2px; }
-  .logo-wrap canvas {
-    width: 20mm; height: 20mm;
+  .logo-wrap img {
+    width: 18mm; height: 24mm;
+    object-fit: contain;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -82,7 +82,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </style>
 </head>
 <body>
-  <div class="logo-wrap"><canvas id="logo-canvas" width="160" height="160"></canvas></div>
+  <div class="logo-wrap"><img src="${LOGO_URL}" alt="logo"/></div>
   <div class="store-name">${storeName}</div>
   ${address ? `<div class="sub">${address}</div>` : ''}
   ${wa ? `<div class="sub">WA: ${wa}</div>` : ''}
@@ -117,67 +117,10 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   </table>
   <div class="sep-eq">================================</div>
   <div class="footer">${footer}</div>
-<script>
-(function() {
-  var canvas = document.getElementById('logo-canvas');
-  var ctx = canvas.getContext('2d');
-  var img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = function() {
-    var W = 160, H = 160;
-    ctx.drawImage(img, 0, 0, W, H);
-    var data = ctx.getImageData(0, 0, W, H);
-    var px = data.data;
-    for (var i = 0; i < px.length; i += 4) {
-      var r = px[i], g = px[i+1], b = px[i+2];
-      // Hapus background merah: r tinggi, g+b rendah
-      if (r > 140 && g < 100 && b < 100) {
-        px[i+3] = 0; // transparan
-      } else {
-        // Semua warna lain → hitam pekat
-        var gray = 0.299*r + 0.587*g + 0.114*b;
-        var val = gray < 180 ? 0 : 255;
-        px[i] = val; px[i+1] = val; px[i+2] = val;
-      }
-    }
-    ctx.putImageData(data, 0, 0);
-  };
-  img.src = '${LOGO_URL}';
-})();
-</script>
 </body>
 </html>`
 }
 
-function LogoCanvas({ size }: { size: number }) {
-  const canvasRef = (el: HTMLCanvasElement | null) => {
-    if (!el) return
-    const ctx = el.getContext('2d')
-    if (!ctx) return
-    const img = new window.Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const W = size, H = size
-      el.width = W; el.height = H
-      ctx.drawImage(img, 0, 0, W, H)
-      const data = ctx.getImageData(0, 0, W, H)
-      const px = data.data
-      for (let i = 0; i < px.length; i += 4) {
-        const r = px[i], g = px[i+1], b = px[i+2]
-        if (r > 140 && g < 100 && b < 100) {
-          px[i+3] = 0
-        } else {
-          const gray = 0.299*r + 0.587*g + 0.114*b
-          const val = gray < 180 ? 0 : 255
-          px[i] = val; px[i+1] = val; px[i+2] = val
-        }
-      }
-      ctx.putImageData(data, 0, 0)
-    }
-    img.src = LOGO_URL
-  }
-  return <canvas ref={canvasRef} width={size} height={size} style={{ width: size, height: size }} />
-}
 
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
@@ -218,7 +161,8 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold' }}
             className="text-black">
             <div className="flex justify-center mb-1">
-              <LogoCanvas size={76} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={LOGO_URL} alt="logo" style={{ width: 68, height: 91, objectFit: 'contain' }} />
             </div>
             <div className="text-center font-bold" style={{fontSize:13}}>{storeName}</div>
             {storeSettings?.address && <div className="text-center" style={{fontSize:10}}>{storeSettings.address}</div>}
