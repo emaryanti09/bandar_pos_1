@@ -11,6 +11,9 @@ interface Props {
   onClose: () => void
 }
 
+// Logo di-load saat runtime dari /logo.jpeg — pakai URL absolut agar bisa di iframe/preview
+const LOGO_URL = '/logo.jpeg'
+
 function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings | null): string {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -44,27 +47,36 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
     width: 44mm;
     font-family: 'Courier New', 'Lucida Console', 'DejaVu Sans Mono', monospace;
     font-size: 11px;
+    font-weight: bold;
     line-height: 1.5;
     color: #000;
   }
   body { padding: 2mm 0 10mm 4mm; }
   table { width: 100%; border-collapse: collapse; }
-  td { vertical-align: top; padding: 0; }
+  td { vertical-align: top; padding: 0; font-weight: bold; }
   .right { text-align: right; }
   .center { text-align: center; }
+  .logo-wrap { text-align: center; margin-bottom: 2px; }
+  .logo-wrap img {
+    width: 20mm; height: 20mm;
+    object-fit: contain;
+    filter: grayscale(100%) contrast(200%) brightness(0.3);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .store-name { font-size: 13px; font-weight: bold; text-align: center; }
-  .sub { font-size: 10px; text-align: center; }
+  .sub { font-size: 10px; font-weight: bold; text-align: center; }
   .sep-eq   { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
   .sep-dash { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
   .label { white-space: nowrap; padding-right: 3px; }
   .item-name-row td { font-size: 11px; font-weight: bold; padding-top: 2px; }
-  .item-detail-row td { font-size: 10px; padding-bottom: 2px; }
+  .item-detail-row td { font-size: 10px; font-weight: bold; padding-bottom: 2px; }
   .spacer td { height: 2px; }
   .total-label { font-size: 13px; font-weight: bold; }
   .total-value { font-size: 13px; font-weight: bold; text-align: right; }
   .pay-label { font-size: 11px; font-weight: bold; }
   .pay-value { font-size: 11px; font-weight: bold; text-align: right; }
-  .footer { font-size: 10px; text-align: center; margin-top: 4px; }
+  .footer { font-size: 10px; font-weight: bold; text-align: center; margin-top: 4px; }
   @media print {
     @page { size: 58mm auto; margin: 0; }
     html, body { width: 44mm; padding: 1mm 0 8mm 4mm; }
@@ -72,6 +84,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </style>
 </head>
 <body>
+  <div class="logo-wrap"><img src="${LOGO_URL}" alt="logo"/></div>
   <div class="store-name">${storeName}</div>
   ${address ? `<div class="sub">${address}</div>` : ''}
   ${wa ? `<div class="sub">WA: ${wa}</div>` : ''}
@@ -146,8 +159,12 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
         {/* Preview — simulasi lebar 48mm */}
         <div className="p-3 overflow-y-auto max-h-[60vh] bg-white flex justify-center">
-          <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5 }}
+          <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold' }}
             className="text-black">
+            <div className="flex justify-center mb-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={LOGO_URL} alt="logo" style={{ width: 20*3.78, height: 20*3.78, objectFit: 'contain', filter: 'grayscale(100%) contrast(200%) brightness(0.3)' }} />
+            </div>
             <div className="text-center font-bold" style={{fontSize:13}}>{storeName}</div>
             {storeSettings?.address && <div className="text-center" style={{fontSize:10}}>{storeSettings.address}</div>}
             {storeSettings?.whatsapp && <div className="text-center" style={{fontSize:10}}>WA: {storeSettings.whatsapp}</div>}
