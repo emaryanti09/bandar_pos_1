@@ -18,11 +18,11 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   const wa = storeSettings?.whatsapp || ''
   const footer = storeSettings?.footer_note || 'Terima kasih!'
 
-  // Item: nama produk, lalu qty x harga = subtotal (semua satu lajur, tidak flex)
+  // Item: nama produk tebal, lalu qty x harga = subtotal
   const rows = items.map(item => `
     <div class="item">
-      <div>${item.product_name}</div>
-      <div class="indent">${item.quantity} x ${formatRupiah(item.price)} = <b>${formatRupiah(item.subtotal)}</b></div>
+      <div class="item-name">${item.product_name}</div>
+      <div class="item-detail">${item.quantity} x ${formatRupiah(item.price)} = <b>${formatRupiah(item.subtotal)}</b></div>
     </div>`).join('')
 
   return `<!DOCTYPE html>
@@ -33,36 +33,36 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   <title>Struk ${transaction.invoice_no}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 54mm; }
+    html, body { width: 52mm; }
     body {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 7.5pt;
-      line-height: 1.5;
-      padding: 2mm;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 3mm 3mm 8mm 4mm;
       color: #000;
       word-break: break-word;
     }
     .center { text-align: center; }
-    .right { text-align: right; }
-    .bold { font-weight: bold; }
-    .sep { border-top: 1px dashed #000; margin: 3px 0; }
-    .store-name { font-size: 9.5pt; font-weight: bold; text-align: center; }
-    .item { margin: 2px 0; }
-    .indent { padding-left: 4px; color: #333; }
-    .kv { display: block; }
-    .kv-label { color: #555; }
-    .total-line { font-weight: bold; font-size: 9pt; }
-    .footer { text-align: center; margin-top: 4px; font-size: 7pt; color: #555; }
+    .sep { border: none; border-top: 1px dashed #000; margin: 4px 0; }
+    .store-name { font-size: 14px; font-weight: 900; text-align: center; letter-spacing: 0.5px; }
+    .sub-header { font-size: 11px; text-align: center; }
+    .item { margin: 3px 0; }
+    .item-name { font-size: 12px; font-weight: 700; }
+    .item-detail { font-size: 11px; padding-left: 2px; }
+    .kv-label { font-size: 11px; }
+    .total-line { font-size: 14px; font-weight: 900; margin-top: 2px; }
+    .pay-line { font-size: 12px; }
+    .footer { text-align: center; margin-top: 5px; font-size: 11px; }
     @media print {
       @page { size: 58mm auto; margin: 0mm; }
-      html, body { width: 54mm; padding: 1mm; }
+      html, body { width: 52mm; padding: 2mm 2mm 6mm 4mm; }
     }
   </style>
 </head>
 <body>
   <div class="store-name">${storeName}</div>
-  ${address ? `<div class="center">${address}</div>` : ''}
-  ${wa ? `<div class="center">WA: ${wa}</div>` : ''}
+  ${address ? `<div class="sub-header">${address}</div>` : ''}
+  ${wa ? `<div class="sub-header">WA: ${wa}</div>` : ''}
   <div class="sep"></div>
   <div><span class="kv-label">No    : </span>${transaction.invoice_no}</div>
   <div><span class="kv-label">Kasir : </span>${transaction.profiles?.full_name || '-'}</div>
@@ -71,8 +71,8 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   ${rows}
   <div class="sep"></div>
   <div class="total-line">TOTAL  : ${formatRupiah(transaction.total)}</div>
-  <div>${transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}   : ${formatRupiah(transaction.paid)}</div>
-  ${transaction.payment_method === 'cash' ? `<div>Kembali: ${formatRupiah(transaction.change)}</div>` : ''}
+  <div class="pay-line">${transaction.payment_method === 'cash' ? 'Cash   ' : 'QRIS   '} : ${formatRupiah(transaction.paid)}</div>
+  ${transaction.payment_method === 'cash' ? `<div class="pay-line">Kembali: ${formatRupiah(transaction.change)}</div>` : ''}
   <div class="sep"></div>
   <div class="footer">${footer}</div>
 </body>
