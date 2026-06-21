@@ -11,22 +11,6 @@ interface Props {
   onClose: () => void
 }
 
-const W = 32 // lebar baris monospace (58mm ≈ 32 char Courier 12px)
-
-function padLine(left: string, right: string): string {
-  const gap = W - left.length - right.length
-  return left + (gap > 0 ? ' '.repeat(gap) : ' ') + right
-}
-
-function sepLine(char: string): string {
-  return char.repeat(W)
-}
-
-function center(text: string): string {
-  const pad = Math.max(0, Math.floor((W - text.length) / 2))
-  return ' '.repeat(pad) + text
-}
-
 function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings | null): string {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -34,113 +18,101 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   const wa = storeSettings?.whatsapp || ''
   const footer = storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'
 
-  const rows = items.map(item => {
-    const harga = formatRupiah(item.price).replace('Rp ', '').replace('Rp ', '')
-    const detailLeft = `  ${item.quantity} x ${harga}`
-    const detailRight = formatRupiah(item.subtotal)
-    return `<div class="item-name">${item.product_name}</div><div class="item-detail">${padLine(detailLeft, detailRight)}</div><div style="height:3px"></div>`
-  }).join('')
+  const itemRows = items.map(item => `
+    <tr class="item-name-row">
+      <td colspan="2"><b>${item.product_name}</b></td>
+    </tr>
+    <tr class="item-detail-row">
+      <td>${item.quantity} x ${formatRupiah(item.price)}</td>
+      <td class="right"><b>${formatRupiah(item.subtotal)}</b></td>
+    </tr>`).join('<tr class="spacer"><td colspan="2"></td></tr>')
 
-  const noLine    = padLine('No    :', transaction.invoice_no)
-  const kasirLine = padLine('Kasir :', transaction.profiles?.full_name || '-')
-  const tglLine   = padLine('Tgl   :', formatDate(transaction.created_at))
-  const totalLine = padLine('TOTAL :', formatRupiah(transaction.total))
-  const metodeLine = padLine(
-    transaction.payment_method === 'cash' ? 'Cash   :' : 'QRIS   :',
-    formatRupiah(transaction.paid)
-  )
-  const kembaliLine = transaction.payment_method === 'cash'
-    ? `<div class="pay-line">${padLine('Kembali:', formatRupiah(transaction.change))}</div>`
-    : ''
+  const kembaliRow = transaction.payment_method === 'cash' ? `
+    <tr>
+      <td>Kembali</td>
+      <td class="right">${formatRupiah(transaction.change)}</td>
+    </tr>` : ''
 
   return `<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>Struk ${transaction.invoice_no}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:54mm; }
-    body {
-      font-family:'Courier New',Courier,monospace;
-      font-size:12px;
-      line-height:1.55;
-      padding:4mm 2mm 10mm 3mm;
-      color:#000;
-    }
-    .store-name { font-size:16px; font-weight:900; text-align:center; letter-spacing:1px; margin-bottom:1px; }
-    .sub-header { font-size:11px; text-align:center; }
-    .sep        { font-size:12px; white-space:pre; }
-    .meta       { font-size:12px; white-space:pre; }
-    .item-name  { font-size:12px; font-weight:900; word-break:break-word; }
-    .item-detail{ font-size:12px; white-space:pre; }
-    .total-block{ font-size:16px; font-weight:900; white-space:pre; margin:2px 0; }
-    .pay-line   { font-size:12px; font-weight:700; white-space:pre; }
-    .footer     { font-size:11px; text-align:center; margin-top:5px; }
-    @media print {
-      @page { size:58mm auto; margin:0mm; }
-      html,body { width:54mm; padding:3mm 2mm 8mm 3mm; }
-    }
-  </style>
+<meta charset="utf-8"/>
+<title>Struk</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width: 48mm;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #000;
+  }
+  body { padding: 2mm 1mm 10mm 2mm; }
+  table { width: 100%; border-collapse: collapse; }
+  td { vertical-align: top; padding: 0; }
+  .right { text-align: right; }
+  .center { text-align: center; }
+  .store-name { font-size: 15px; font-weight: bold; text-align: center; }
+  .sub { font-size: 12px; text-align: center; }
+  .sep-eq   { font-size: 11px; letter-spacing: -0.5px; text-align: center; overflow: hidden; }
+  .sep-dash { font-size: 11px; letter-spacing: -0.5px; text-align: center; overflow: hidden; }
+  .label { white-space: nowrap; padding-right: 4px; }
+  .item-name-row td { font-size: 13px; padding-top: 3px; }
+  .item-detail-row td { font-size: 12px; padding-bottom: 3px; }
+  .spacer td { height: 2px; }
+  .total-label { font-size: 16px; font-weight: bold; }
+  .total-value { font-size: 16px; font-weight: bold; text-align: right; }
+  .pay-label { font-size: 13px; font-weight: bold; }
+  .pay-value { font-size: 13px; font-weight: bold; text-align: right; }
+  .footer { font-size: 11px; text-align: center; margin-top: 4px; }
+  @media print {
+    @page { size: 58mm auto; margin: 0; }
+    html, body { width: 48mm; padding: 1mm 1mm 8mm 2mm; }
+  }
+</style>
 </head>
 <body>
-<div class="store-name">${storeName}</div>
-${address ? `<div class="sub-header">${address}</div>` : ''}
-${wa ? `<div class="sub-header">WA: ${wa}</div>` : ''}
-<div class="sep">${sepLine('=')}</div>
-<div class="meta">${noLine}</div>
-<div class="meta">${kasirLine}</div>
-<div class="meta">${tglLine}</div>
-<div class="sep">${sepLine('-')}</div>
-${rows}
-<div class="sep">${sepLine('-')}</div>
-<div class="total-block">${totalLine}</div>
-<div class="sep">${sepLine('-')}</div>
-<div class="pay-line">${metodeLine}</div>
-${kembaliLine}
-<div class="sep">${sepLine('=')}</div>
-<div class="footer">${footer}</div>
+  <div class="store-name">${storeName}</div>
+  ${address ? `<div class="sub">${address}</div>` : ''}
+  ${wa ? `<div class="sub">WA: ${wa}</div>` : ''}
+  <div class="sep-eq">================================</div>
+
+  <table>
+    <tr><td class="label">No</td><td class="right">${transaction.invoice_no}</td></tr>
+    <tr><td class="label">Kasir</td><td class="right">${transaction.profiles?.full_name || '-'}</td></tr>
+    <tr><td class="label">Tgl</td><td class="right">${formatDate(transaction.created_at)}</td></tr>
+  </table>
+  <div class="sep-dash">--------------------------------</div>
+
+  <table>
+    ${itemRows}
+  </table>
+  <div class="sep-dash">--------------------------------</div>
+
+  <table>
+    <tr>
+      <td class="total-label">TOTAL</td>
+      <td class="total-value">${formatRupiah(transaction.total)}</td>
+    </tr>
+  </table>
+  <div class="sep-dash">--------------------------------</div>
+
+  <table>
+    <tr>
+      <td class="pay-label">${transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</td>
+      <td class="pay-value">${formatRupiah(transaction.paid)}</td>
+    </tr>
+    ${kembaliRow}
+  </table>
+  <div class="sep-eq">================================</div>
+  <div class="footer">${footer}</div>
 </body>
 </html>`
 }
 
-function buildPreviewText(transaction: Transaction, storeSettings: StoreSettings | null): string {
+export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
-  const address = storeSettings?.address || ''
-  const wa = storeSettings?.whatsapp || ''
-  const footer = storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'
-
-  const lines: string[] = [
-    center(storeName),
-    ...(address ? [center(address)] : []),
-    ...(wa ? [center('WA: ' + wa)] : []),
-    sepLine('='),
-    padLine('No    :', transaction.invoice_no),
-    padLine('Kasir :', transaction.profiles?.full_name || '-'),
-    padLine('Tgl   :', formatDate(transaction.created_at)),
-    sepLine('-'),
-    ...items.flatMap(item => {
-      const harga = formatRupiah(item.price).replace('Rp ', '').replace('Rp ', '')
-      return [
-        item.product_name,
-        padLine(`  ${item.quantity} x ${harga}`, formatRupiah(item.subtotal)),
-      ]
-    }),
-    sepLine('-'),
-    padLine('TOTAL :', formatRupiah(transaction.total)),
-    sepLine('-'),
-    padLine(transaction.payment_method === 'cash' ? 'Cash   :' : 'QRIS   :', formatRupiah(transaction.paid)),
-    ...(transaction.payment_method === 'cash' ? [padLine('Kembali:', formatRupiah(transaction.change))] : []),
-    sepLine('='),
-    center(footer),
-  ]
-
-  return lines.join('\n')
-}
-
-export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
-  const previewText = buildPreviewText(transaction, storeSettings)
 
   function handlePrint() {
     const html = buildStrukHtml(transaction, storeSettings)
@@ -172,11 +144,50 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        {/* Preview monospace — sama persis dengan hasil print */}
-        <div className="p-4 overflow-y-auto max-h-[60vh] bg-white">
-          <pre className="font-mono text-[10.5px] leading-[1.55] whitespace-pre text-black overflow-x-auto">
-            {previewText}
-          </pre>
+        {/* Preview — simulasi lebar 48mm */}
+        <div className="p-3 overflow-y-auto max-h-[60vh] bg-white flex justify-center">
+          <div style={{ width: '48mm', fontFamily: "'Courier New', monospace", fontSize: 13, lineHeight: 1.5 }}
+            className="text-black">
+            <div className="text-center font-bold text-base">{storeName}</div>
+            {storeSettings?.address && <div className="text-center text-xs">{storeSettings.address}</div>}
+            {storeSettings?.whatsapp && <div className="text-center text-xs">WA: {storeSettings.whatsapp}</div>}
+            <div className="text-center text-xs overflow-hidden">================================</div>
+            <table className="w-full text-xs">
+              <tbody>
+                <tr><td className="pr-1 whitespace-nowrap">No</td><td className="text-right">{transaction.invoice_no}</td></tr>
+                <tr><td className="pr-1 whitespace-nowrap">Kasir</td><td className="text-right">{transaction.profiles?.full_name || '-'}</td></tr>
+                <tr><td className="pr-1 whitespace-nowrap">Tgl</td><td className="text-right">{formatDate(transaction.created_at)}</td></tr>
+              </tbody>
+            </table>
+            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
+            <div className="space-y-1">
+              {items.map((item, i) => (
+                <div key={i}>
+                  <div className="font-bold text-xs">{item.product_name}</div>
+                  <div className="flex justify-between text-xs">
+                    <span>{item.quantity} x {formatRupiah(item.price)}</span>
+                    <span className="font-bold">{formatRupiah(item.subtotal)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
+            <div className="flex justify-between font-bold" style={{ fontSize: 15 }}>
+              <span>TOTAL</span><span>{formatRupiah(transaction.total)}</span>
+            </div>
+            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
+            <div className="flex justify-between font-bold text-xs">
+              <span>{transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span>
+              <span>{formatRupiah(transaction.paid)}</span>
+            </div>
+            {transaction.payment_method === 'cash' && (
+              <div className="flex justify-between font-bold text-xs">
+                <span>Kembali</span><span>{formatRupiah(transaction.change)}</span>
+              </div>
+            )}
+            <div className="text-center text-xs overflow-hidden">================================</div>
+            <div className="text-center text-xs mt-1">{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
+          </div>
         </div>
 
         <div className="p-4 border-t space-y-2">
