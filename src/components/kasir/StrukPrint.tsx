@@ -42,7 +42,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body {
     width: 44mm;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Courier New', 'Lucida Console', 'DejaVu Sans Mono', monospace;
     font-size: 11px;
     line-height: 1.5;
     color: #000;
