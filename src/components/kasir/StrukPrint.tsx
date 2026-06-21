@@ -57,7 +57,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   .center { text-align: center; }
   .header-row { display: flex; align-items: center; gap: 2mm; margin-bottom: 2px; }
   .header-logo img {
-    width: 21mm; height: 26mm;
+    width: 18mm; height: 24mm;
     object-fit: contain;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -168,7 +168,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
             className="text-black">
             <div className="flex items-center gap-2 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO_URL} alt="logo" style={{ width: 79, height: 98, objectFit: 'contain', flexShrink: 0 }} />
+              <img src={LOGO_URL} alt="logo" style={{ width: 68, height: 91, objectFit: 'contain', flexShrink: 0 }} />
               <div className="font-bold" style={{fontSize:14, lineHeight:1.3}}>
                 {storeName.split(' ').map((w, i) => <div key={i}>{w}</div>)}
               </div>
