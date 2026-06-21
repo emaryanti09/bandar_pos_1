@@ -55,14 +55,16 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   td { vertical-align: top; padding: 0; font-weight: bold; }
   .right { text-align: right; }
   .center { text-align: center; }
-  .logo-wrap { text-align: center; margin-bottom: 2px; }
-  .logo-wrap img {
-    width: 18mm; height: 24mm;
+  .header-row { display: flex; align-items: center; gap: 2mm; margin-bottom: 2px; }
+  .header-logo img {
+    width: 21mm; height: 26mm;
     object-fit: contain;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    display: block;
   }
-  .store-name { font-size: 13px; font-weight: bold; text-align: center; }
+  .header-text { flex: 1; }
+  .store-name { font-size: 14px; font-weight: bold; line-height: 1.3; }
   .sub { font-size: 10px; font-weight: bold; text-align: center; }
   .sep-eq   { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
   .sep-dash { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
@@ -82,8 +84,12 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </style>
 </head>
 <body>
-  <div class="logo-wrap"><img src="${LOGO_URL}" alt="logo"/></div>
-  <div class="store-name">${storeName}</div>
+  <div class="header-row">
+    <div class="header-logo"><img src="${LOGO_URL}" alt="logo"/></div>
+    <div class="header-text">
+      <div class="store-name">${storeName.split(' ').join('<br>')}</div>
+    </div>
+  </div>
   ${address ? `<div class="sub">${address}</div>` : ''}
   ${wa ? `<div class="sub">WA: ${wa}</div>` : ''}
   <div class="sep-eq">================================</div>
@@ -160,11 +166,13 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         <div className="p-3 overflow-y-auto max-h-[60vh] bg-white flex justify-center">
           <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold' }}
             className="text-black">
-            <div className="flex justify-center mb-1">
+            <div className="flex items-center gap-2 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO_URL} alt="logo" style={{ width: 68, height: 91, objectFit: 'contain' }} />
+              <img src={LOGO_URL} alt="logo" style={{ width: 79, height: 98, objectFit: 'contain', flexShrink: 0 }} />
+              <div className="font-bold" style={{fontSize:14, lineHeight:1.3}}>
+                {storeName.split(' ').map((w, i) => <div key={i}>{w}</div>)}
+              </div>
             </div>
-            <div className="text-center font-bold" style={{fontSize:13}}>{storeName}</div>
             {storeSettings?.address && <div className="text-center" style={{fontSize:10}}>{storeSettings.address}</div>}
             {storeSettings?.whatsapp && <div className="text-center" style={{fontSize:10}}>WA: {storeSettings.whatsapp}</div>}
             <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>================================</div>
