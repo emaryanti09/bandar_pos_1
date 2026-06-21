@@ -47,7 +47,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
     line-height: 1.5;
     color: #000;
   }
-  body { padding: 2mm 0 10mm 0; }
+  body { padding: 2mm 0 10mm 7mm; }
   table { width: 100%; border-collapse: collapse; }
   td { vertical-align: top; padding: 0; }
   .right { text-align: right; }
@@ -67,7 +67,7 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
   .footer { font-size: 10px; text-align: center; margin-top: 4px; }
   @media print {
     @page { size: 58mm auto; margin: 0; }
-    html, body { width: 44mm; padding: 1mm 0 8mm 0; }
+    html, body { width: 44mm; padding: 1mm 0 8mm 7mm; }
   }
 </style>
 </head>
