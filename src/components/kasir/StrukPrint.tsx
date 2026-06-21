@@ -41,33 +41,33 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body {
-    width: 48mm;
+    width: 44mm;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 11px;
     line-height: 1.5;
     color: #000;
   }
-  body { padding: 2mm 1mm 10mm 2mm; }
+  body { padding: 2mm 0 10mm 0; }
   table { width: 100%; border-collapse: collapse; }
   td { vertical-align: top; padding: 0; }
   .right { text-align: right; }
   .center { text-align: center; }
-  .store-name { font-size: 15px; font-weight: bold; text-align: center; }
-  .sub { font-size: 12px; text-align: center; }
-  .sep-eq   { font-size: 11px; letter-spacing: -0.5px; text-align: center; overflow: hidden; }
-  .sep-dash { font-size: 11px; letter-spacing: -0.5px; text-align: center; overflow: hidden; }
-  .label { white-space: nowrap; padding-right: 4px; }
-  .item-name-row td { font-size: 13px; padding-top: 3px; }
-  .item-detail-row td { font-size: 12px; padding-bottom: 3px; }
+  .store-name { font-size: 13px; font-weight: bold; text-align: center; }
+  .sub { font-size: 10px; text-align: center; }
+  .sep-eq   { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
+  .sep-dash { font-size: 10px; letter-spacing: -1px; text-align: center; overflow: hidden; }
+  .label { white-space: nowrap; padding-right: 3px; }
+  .item-name-row td { font-size: 11px; font-weight: bold; padding-top: 2px; }
+  .item-detail-row td { font-size: 10px; padding-bottom: 2px; }
   .spacer td { height: 2px; }
-  .total-label { font-size: 16px; font-weight: bold; }
-  .total-value { font-size: 16px; font-weight: bold; text-align: right; }
-  .pay-label { font-size: 13px; font-weight: bold; }
-  .pay-value { font-size: 13px; font-weight: bold; text-align: right; }
-  .footer { font-size: 11px; text-align: center; margin-top: 4px; }
+  .total-label { font-size: 13px; font-weight: bold; }
+  .total-value { font-size: 13px; font-weight: bold; text-align: right; }
+  .pay-label { font-size: 11px; font-weight: bold; }
+  .pay-value { font-size: 11px; font-weight: bold; text-align: right; }
+  .footer { font-size: 10px; text-align: center; margin-top: 4px; }
   @media print {
     @page { size: 58mm auto; margin: 0; }
-    html, body { width: 48mm; padding: 1mm 1mm 8mm 2mm; }
+    html, body { width: 44mm; padding: 1mm 0 8mm 0; }
   }
 </style>
 </head>
@@ -117,7 +117,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
   function handlePrint() {
     const html = buildStrukHtml(transaction, storeSettings)
     const iframe = document.createElement('iframe')
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:58mm;border:none;'
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:44mm;border:none;'
     document.body.appendChild(iframe)
     const doc = iframe.contentDocument || iframe.contentWindow?.document
     if (!doc) { toast.error('Gagal membuat frame print'); document.body.removeChild(iframe); return }
@@ -146,47 +146,47 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
         {/* Preview — simulasi lebar 48mm */}
         <div className="p-3 overflow-y-auto max-h-[60vh] bg-white flex justify-center">
-          <div style={{ width: '48mm', fontFamily: "'Courier New', monospace", fontSize: 13, lineHeight: 1.5 }}
+          <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5 }}
             className="text-black">
-            <div className="text-center font-bold text-base">{storeName}</div>
-            {storeSettings?.address && <div className="text-center text-xs">{storeSettings.address}</div>}
-            {storeSettings?.whatsapp && <div className="text-center text-xs">WA: {storeSettings.whatsapp}</div>}
-            <div className="text-center text-xs overflow-hidden">================================</div>
-            <table className="w-full text-xs">
+            <div className="text-center font-bold" style={{fontSize:13}}>{storeName}</div>
+            {storeSettings?.address && <div className="text-center" style={{fontSize:10}}>{storeSettings.address}</div>}
+            {storeSettings?.whatsapp && <div className="text-center" style={{fontSize:10}}>WA: {storeSettings.whatsapp}</div>}
+            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>================================</div>
+            <table className="w-full" style={{fontSize:11}}>
               <tbody>
                 <tr><td className="pr-1 whitespace-nowrap">No</td><td className="text-right">{transaction.invoice_no}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Kasir</td><td className="text-right">{transaction.profiles?.full_name || '-'}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Tgl</td><td className="text-right">{formatDate(transaction.created_at)}</td></tr>
               </tbody>
             </table>
-            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
+            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
             <div className="space-y-1">
               {items.map((item, i) => (
                 <div key={i}>
-                  <div className="font-bold text-xs">{item.product_name}</div>
-                  <div className="flex justify-between text-xs">
+                  <div className="font-bold" style={{fontSize:11}}>{item.product_name}</div>
+                  <div className="flex justify-between" style={{fontSize:10}}>
                     <span>{item.quantity} x {formatRupiah(item.price)}</span>
                     <span className="font-bold">{formatRupiah(item.subtotal)}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
-            <div className="flex justify-between font-bold" style={{ fontSize: 15 }}>
+            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
+            <div className="flex justify-between font-bold" style={{fontSize:13}}>
               <span>TOTAL</span><span>{formatRupiah(transaction.total)}</span>
             </div>
-            <div className="text-center text-xs overflow-hidden">--------------------------------</div>
-            <div className="flex justify-between font-bold text-xs">
+            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
+            <div className="flex justify-between font-bold" style={{fontSize:11}}>
               <span>{transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span>
               <span>{formatRupiah(transaction.paid)}</span>
             </div>
             {transaction.payment_method === 'cash' && (
-              <div className="flex justify-between font-bold text-xs">
+              <div className="flex justify-between font-bold" style={{fontSize:11}}>
                 <span>Kembali</span><span>{formatRupiah(transaction.change)}</span>
               </div>
             )}
-            <div className="text-center text-xs overflow-hidden">================================</div>
-            <div className="text-center text-xs mt-1">{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
+            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>================================</div>
+            <div className="text-center mt-1" style={{fontSize:10}}>{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
           </div>
         </div>
 
