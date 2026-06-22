@@ -401,6 +401,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
         <ModalBayar
           cart={cart}
           subtotal={subtotal}
+          showOngkir={profile?.role === 'kasir'}
           onClose={() => setShowBayar(false)}
           onSuccess={handleTransactionSuccess}
         />
