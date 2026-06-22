@@ -1,6 +1,7 @@
 'use client'
 
-import { X, Printer, Eye } from 'lucide-react'
+import { useRef } from 'react'
+import { X, Printer, Eye, Share2, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import type { Transaction, StoreSettings } from '@/types'
@@ -127,10 +128,10 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </html>`
 }
 
-
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
+  const previewRef = useRef<HTMLDivElement>(null)
 
   function handlePrint() {
     const html = buildStrukHtml(transaction, storeSettings)
@@ -154,6 +155,54 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
     if (!win) { toast.error('Popup diblokir. Izinkan popup di browser.'); URL.revokeObjectURL(url) }
   }
 
+  async function handleShare() {
+    if (!previewRef.current) return
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(previewRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      })
+
+      const filename = `struk-${transaction.invoice_no}.png`
+
+      // Coba Web Share API (HP Android/iOS)
+      if (navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+          if (!blob) { toast.error('Gagal membuat gambar'); return }
+          const file = new File([blob], filename, { type: 'image/png' })
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
+            } catch {
+              // User cancel share — tidak perlu error
+            }
+            return
+          }
+          // Fallback: download
+          downloadCanvas(canvas, filename)
+        }, 'image/png')
+      } else {
+        // Desktop: langsung download
+        downloadCanvas(canvas, filename)
+      }
+    } catch {
+      toast.error('Gagal membuat screenshot')
+    }
+  }
+
+  function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
+    const a = document.createElement('a')
+    a.href = canvas.toDataURL('image/png')
+    a.download = filename
+    a.click()
+    toast.success('Gambar struk tersimpan')
+  }
+
+  const canShare = typeof navigator !== 'undefined' && !!navigator.canShare
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-xs shadow-2xl">
@@ -162,10 +211,13 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        {/* Preview — simulasi lebar 48mm */}
-        <div className="p-3 overflow-y-auto max-h-[60vh] bg-white flex justify-center">
-          <div style={{ width: '44mm', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold' }}
-            className="text-black">
+        {/* Preview */}
+        <div className="p-3 overflow-y-auto max-h-[55vh] bg-white flex justify-center">
+          <div
+            ref={previewRef}
+            style={{ width: '166px', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold', backgroundColor: '#fff', padding: '8px 6px 16px 8px' }}
+            className="text-black"
+          >
             <div className="flex items-center gap-2 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={LOGO_URL} alt="logo" style={{ width: 68, height: 91, objectFit: 'contain', flexShrink: 0 }} />
@@ -215,19 +267,26 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         </div>
 
         <div className="p-4 border-t space-y-2">
+          {/* Baris 1: Share / Preview */}
           <div className="flex gap-2">
-            <button onClick={onClose}
-              className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 text-sm">
-              Tutup
+            <button onClick={handleShare}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 text-sm">
+              {canShare ? <Share2 className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+              {canShare ? 'Kirim / WA' : 'Simpan'}
             </button>
             <button onClick={handlePreview}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 text-sm">
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 text-sm">
               <Eye className="w-4 h-4" /> Preview
             </button>
           </div>
+          {/* Baris 2: Print */}
           <button onClick={handlePrint}
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 text-sm">
             <Printer className="w-4 h-4" /> Print 58mm
+          </button>
+          <button onClick={onClose}
+            className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm">
+            Tutup
           </button>
         </div>
       </div>
