@@ -210,6 +210,28 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   return lines.join('\n')
 }
 
+function trimCanvasBottom(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return canvas
+  const { width, height } = canvas
+  const imageData = ctx.getImageData(0, 0, width, height)
+  const data = imageData.data
+  let lastContentRow = 0
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4
+      const r = data[idx], g = data[idx + 1], b = data[idx + 2]
+      if (r < 250 || g < 250 || b < 250) lastContentRow = y
+    }
+  }
+  const newHeight = Math.min(lastContentRow + 20, height)
+  const trimmed = document.createElement('canvas')
+  trimmed.width = width
+  trimmed.height = newHeight
+  trimmed.getContext('2d')?.drawImage(canvas, 0, 0)
+  return trimmed
+}
+
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -285,8 +307,9 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         useCORS: true,
         logging: false,
       })
+      const trimmed = trimCanvasBottom(canvas)
       const filename = `rawbt-${transaction.invoice_no}.png`
-      canvas.toBlob(async (blob) => {
+      trimmed.toBlob(async (blob) => {
         if (!blob) { toast.error('Gagal membuat gambar'); return }
         const file = new File([blob], filename, { type: 'image/png' })
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -294,7 +317,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
             await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
           } catch { /* user cancel */ }
         } else {
-          downloadCanvas(canvas, filename)
+          downloadCanvas(trimmed, filename)
         }
       }, 'image/png')
     } catch {
