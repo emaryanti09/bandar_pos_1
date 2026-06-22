@@ -54,14 +54,10 @@ export async function POST(req: NextRequest) {
     })
 
     if (createError) {
+      const e = createError as unknown as Record<string, unknown>
       return NextResponse.json({
         error: 'createUser gagal',
-        detail: {
-          message: createError.message,
-          code: (createError as Record<string, unknown>).code,
-          status: (createError as Record<string, unknown>).status,
-          name: createError.name,
-        }
+        detail: { message: createError.message, code: e.code, status: e.status, name: createError.name }
       }, { status: 500 })
     }
 
