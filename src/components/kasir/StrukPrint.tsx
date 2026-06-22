@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { X, Printer, Eye, Share2, Download, BluetoothConnected } from 'lucide-react'
+import { X, Printer, Share2, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import type { Transaction, StoreSettings } from '@/types'
@@ -210,36 +210,6 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   return lines.join('\n')
 }
 
-function trimAndScaleCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return canvas
-  const { width, height } = canvas
-  const imageData = ctx.getImageData(0, 0, width, height)
-  const data = imageData.data
-  let lastContentRow = 0
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4
-      const r = data[idx], g = data[idx + 1], b = data[idx + 2]
-      if (r < 250 || g < 250 || b < 250) lastContentRow = y
-    }
-  }
-  const croppedHeight = Math.min(lastContentRow + 20, height)
-  // Scale ke lebar printer 58mm (576px @ 203dpi), proporsional
-  const TARGET_WIDTH = 576
-  const scale = TARGET_WIDTH / width
-  const out = document.createElement('canvas')
-  out.width = TARGET_WIDTH
-  out.height = Math.round(croppedHeight * scale)
-  const octx = out.getContext('2d')
-  if (octx) {
-    octx.fillStyle = '#ffffff'
-    octx.fillRect(0, 0, out.width, out.height)
-    octx.drawImage(canvas, 0, 0, width, croppedHeight, 0, 0, out.width, out.height)
-  }
-  return out
-}
-
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -257,14 +227,6 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
       try { iframe.contentWindow?.focus(); iframe.contentWindow?.print() }
       finally { setTimeout(() => document.body.removeChild(iframe), 1000) }
     })
-  }
-
-  function handlePreview() {
-    const html = buildStrukHtml(transaction, storeSettings)
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const win = window.open(url, '_blank')
-    if (!win) { toast.error('Popup diblokir. Izinkan popup di browser.'); URL.revokeObjectURL(url) }
   }
 
   async function handleShare() {
@@ -302,34 +264,6 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
       }
     } catch {
       toast.error('Gagal membuat screenshot')
-    }
-  }
-
-  async function handleRawBT() {
-    if (!previewRef.current) return
-    try {
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(previewRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 3,
-        useCORS: true,
-        logging: false,
-      })
-      const trimmed = trimAndScaleCanvas(canvas)
-      const filename = `rawbt-${transaction.invoice_no}.png`
-      trimmed.toBlob(async (blob) => {
-        if (!blob) { toast.error('Gagal membuat gambar'); return }
-        const file = new File([blob], filename, { type: 'image/png' })
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
-          } catch { /* user cancel */ }
-        } else {
-          downloadCanvas(trimmed, filename)
-        }
-      }, 'image/png')
-    } catch {
-      toast.error('Gagal membuat gambar struk')
     }
   }
 
@@ -406,34 +340,18 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           </div>
         </div>
 
-        <div className="p-4 border-t space-y-2">
-          {/* Baris 1: RawBT / Share WA */}
+        <div className="p-4 border-t">
           <div className="flex gap-2">
-            <button onClick={handleRawBT}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 text-sm">
-              <BluetoothConnected className="w-4 h-4" /> RawBT
-            </button>
             <button onClick={handleShare}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 text-sm">
               {canShare ? <Share2 className="w-4 h-4" /> : <Download className="w-4 h-4" />}
               {canShare ? 'Kirim / WA' : 'Simpan'}
-            </button>
-          </div>
-          {/* Baris 2: Preview / Print */}
-          <div className="flex gap-2">
-            <button onClick={handlePreview}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 text-sm">
-              <Eye className="w-4 h-4" /> Preview
             </button>
             <button onClick={handlePrint}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 text-sm">
               <Printer className="w-4 h-4" /> Print 58mm
             </button>
           </div>
-          <button onClick={onClose}
-            className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm">
-            Tutup
-          </button>
         </div>
       </div>
     </div>
