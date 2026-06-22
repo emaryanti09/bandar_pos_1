@@ -354,7 +354,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         </div>
 
         {/* Preview */}
-        <div className="p-3 overflow-y-auto max-h-[55vh] bg-white flex justify-center">
+        <div className={`p-3 bg-white flex justify-center ${isMobile ? '' : 'overflow-y-auto max-h-[55vh]'}`}>
           <div
             ref={previewRef}
             style={{
