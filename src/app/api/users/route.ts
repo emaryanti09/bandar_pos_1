@@ -62,13 +62,21 @@ export async function POST(req: NextRequest) {
         .from('profiles')
         .upsert({ id: newUser.user.id, full_name, role: role || 'kasir', active: true })
       if (profileError) {
-        return NextResponse.json({ error: `User dibuat tapi profile gagal: ${profileError.message}` }, { status: 500 })
+        return NextResponse.json({
+          error: `Profile upsert gagal`,
+          detail: {
+            message: profileError.message,
+            code: profileError.code,
+            hint: profileError.hint,
+            details: profileError.details,
+          }
+        }, { status: 500 })
       }
     }
 
     return NextResponse.json({ data: { id: newUser.user?.id, email, full_name, role } }, { status: 201 })
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const msg = err instanceof Error ? err.message : JSON.stringify(err)
     return NextResponse.json({ error: `Server error: ${msg}` }, { status: 500 })
   }
 }
