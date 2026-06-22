@@ -128,14 +128,19 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </html>`
 }
 
+// Format rupiah ASCII-only untuk printer thermal (tanpa simbol Rp unicode)
+function rp(amount: number): string {
+  return 'Rp' + amount.toLocaleString('id-ID').replace(/\./g, '.')
+}
+
 function pad(left: string, right: string, width = 32): string {
   const gap = width - left.length - right.length
-  return left + (gap > 0 ? ' '.repeat(gap) : ' ') + right
+  return left + (gap > 0 ? ' '.repeat(gap) : '\n' + ' '.repeat(width - right.length)) + right
 }
 
 function center(text: string, width = 32): string {
-  const pad = Math.max(0, Math.floor((width - text.length) / 2))
-  return ' '.repeat(pad) + text
+  const spaces = Math.max(0, Math.floor((width - text.length) / 2))
+  return ' '.repeat(spaces) + text
 }
 
 function formatTgl(dateStr: string): string {
@@ -146,6 +151,19 @@ function formatTgl(dateStr: string): string {
   const hh = String(d.getHours()).padStart(2, '0')
   const mn = String(d.getMinutes()).padStart(2, '0')
   return `${dd}/${mm}/${yy} ${hh}:${mn}`
+}
+
+function wrapCenter(text: string, W: number): string[] {
+  const words = text.split(' ')
+  const out: string[] = []
+  let line = ''
+  words.forEach(w => {
+    const candidate = line ? line + ' ' + w : w
+    if (candidate.length <= W) { line = candidate }
+    else { if (line) out.push(center(line, W)); line = w }
+  })
+  if (line) out.push(center(line, W))
+  return out
 }
 
 function buildStrukText(transaction: Transaction, storeSettings: StoreSettings | null): string {
@@ -159,49 +177,37 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   const DASH = '-'.repeat(W)
 
   const lines: string[] = []
-  lines.push(center(storeName, W))
-  if (address) {
-    // Wrap address per 32 char
-    const words = address.split(' ')
-    let line = ''
-    words.forEach(w => {
-      if ((line + ' ' + w).trim().length <= W) {
-        line = (line + ' ' + w).trim()
-      } else {
-        lines.push(center(line, W))
-        line = w
-      }
-    })
-    if (line) lines.push(center(line, W))
-  }
+
+  // Header
+  wrapCenter(storeName, W).forEach(l => lines.push(l))
+  if (address) wrapCenter(address, W).forEach(l => lines.push(l))
   if (wa) lines.push(center('WA: ' + wa, W))
   lines.push(SEP)
-  lines.push(pad('No', transaction.invoice_no, W))
-  lines.push(pad('Kasir', transaction.profiles?.full_name || '-', W))
-  lines.push(pad('Tgl', formatTgl(transaction.created_at), W))
+
+  // Info — format "Label: nilai" agar tidak overflow
+  lines.push('No   : ' + transaction.invoice_no)
+  lines.push('Kasir: ' + (transaction.profiles?.full_name || '-'))
+  lines.push('Tgl  : ' + formatTgl(transaction.created_at))
   lines.push(DASH)
 
+  // Items — gunakan rp() ASCII-only
   items.forEach(item => {
-    // Wrap nama produk jika > W
-    if (item.product_name.length <= W) {
-      lines.push(item.product_name)
-    } else {
-      lines.push(item.product_name.slice(0, W))
-    }
-    lines.push(pad(`${item.quantity} x ${formatRupiah(item.price)}`, formatRupiah(item.subtotal), W))
+    lines.push(item.product_name.slice(0, W))
+    lines.push(pad(item.quantity + ' x ' + rp(item.price), rp(item.subtotal), W))
   })
 
   lines.push(DASH)
-  lines.push(pad('TOTAL', formatRupiah(transaction.total), W))
+  lines.push(pad('TOTAL', rp(transaction.total), W))
   lines.push(DASH)
-  lines.push(pad(transaction.payment_method === 'cash' ? 'Cash' : 'QRIS', formatRupiah(transaction.paid), W))
+  lines.push(pad(transaction.payment_method === 'cash' ? 'Cash' : 'QRIS', rp(transaction.paid), W))
   if (transaction.payment_method === 'cash') {
-    lines.push(pad('Kembali', formatRupiah(transaction.change), W))
+    lines.push(pad('Kembali', rp(transaction.change), W))
   }
   lines.push(SEP)
-  lines.push(center(footer, W))
-  // Feed 4 baris untuk cut — tidak lebih agar tidak jadi halaman ke-2
-  lines.push('\n\n\n\n')
+  wrapCenter(footer, W).forEach(l => lines.push(l))
+  lines.push('')
+  lines.push('')
+  lines.push('')
 
   return lines.join('\n')
 }
