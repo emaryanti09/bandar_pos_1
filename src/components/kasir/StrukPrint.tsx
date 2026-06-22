@@ -210,7 +210,7 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   return lines.join('\n')
 }
 
-function trimCanvasBottom(canvas: HTMLCanvasElement): HTMLCanvasElement {
+function trimAndScaleCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
   const ctx = canvas.getContext('2d')
   if (!ctx) return canvas
   const { width, height } = canvas
@@ -224,12 +224,20 @@ function trimCanvasBottom(canvas: HTMLCanvasElement): HTMLCanvasElement {
       if (r < 250 || g < 250 || b < 250) lastContentRow = y
     }
   }
-  const newHeight = Math.min(lastContentRow + 20, height)
-  const trimmed = document.createElement('canvas')
-  trimmed.width = width
-  trimmed.height = newHeight
-  trimmed.getContext('2d')?.drawImage(canvas, 0, 0)
-  return trimmed
+  const croppedHeight = Math.min(lastContentRow + 20, height)
+  // Scale ke lebar printer 58mm (576px @ 203dpi), proporsional
+  const TARGET_WIDTH = 576
+  const scale = TARGET_WIDTH / width
+  const out = document.createElement('canvas')
+  out.width = TARGET_WIDTH
+  out.height = Math.round(croppedHeight * scale)
+  const octx = out.getContext('2d')
+  if (octx) {
+    octx.fillStyle = '#ffffff'
+    octx.fillRect(0, 0, out.width, out.height)
+    octx.drawImage(canvas, 0, 0, width, croppedHeight, 0, 0, out.width, out.height)
+  }
+  return out
 }
 
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
@@ -307,7 +315,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         useCORS: true,
         logging: false,
       })
-      const trimmed = trimCanvasBottom(canvas)
+      const trimmed = trimAndScaleCanvas(canvas)
       const filename = `rawbt-${transaction.invoice_no}.png`
       trimmed.toBlob(async (blob) => {
         if (!blob) { toast.error('Gagal membuat gambar'); return }
