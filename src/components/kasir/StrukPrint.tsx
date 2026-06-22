@@ -279,14 +279,14 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full shadow-2xl max-w-md">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="bg-white rounded-2xl w-full shadow-2xl max-w-md flex flex-col max-h-[92vh]">
+        <div className="flex items-center justify-between p-4 border-b shrink-0">
           <h2 className="font-bold text-gray-900">Struk Pembayaran</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        {/* Preview — satu ukuran: besar & lebar penuh */}
-        <div className="bg-white w-full block px-4 pt-2 overflow-y-auto max-h-[60vh]">
+        {/* Preview — besar & lebar penuh, scroll vertikal saat item banyak */}
+        <div className="bg-white w-full block px-4 pt-2 overflow-y-auto flex-1 min-h-0">
           <div
             ref={previewRef}
             className="text-black block w-full box-border font-bold bg-white text-[22px] leading-[1.5] px-0 pt-2 pb-6"
@@ -340,7 +340,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           </div>
         </div>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t shrink-0">
           <div className="flex gap-2">
             <button onClick={handleShare}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 text-sm">
