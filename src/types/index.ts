@@ -77,6 +77,7 @@ export interface StoreSettings {
   whatsapp: string | null
   address: string | null
   footer_note: string | null
+  delivery_price_markup: number
 }
 
 export interface CartItem {

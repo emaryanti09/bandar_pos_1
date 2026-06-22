@@ -15,6 +15,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
     whatsapp: initialSettings?.whatsapp || '',
     address: initialSettings?.address || '',
     footer_note: initialSettings?.footer_note || 'Terima kasih telah berbelanja!',
+    delivery_price_markup: initialSettings?.delivery_price_markup ?? 0,
   })
   const [savingSettings, setSavingSettings] = useState(false)
   const [users, setUsers] = useState<Profile[]>([])
@@ -76,6 +77,18 @@ export default function PengaturanClient({ initialSettings }: Props) {
             <label className="label">Pesan Footer Struk</label>
             <input value={settings.footer_note} onChange={e => setSettings(s => ({ ...s, footer_note: e.target.value }))}
               className="input" />
+          </div>
+          <div>
+            <label className="label">Markup Harga Delivery (Rp)</label>
+            <input
+              type="number"
+              min={0}
+              value={settings.delivery_price_markup}
+              onChange={e => setSettings(s => ({ ...s, delivery_price_markup: parseInt(e.target.value) || 0 }))}
+              className="input"
+              placeholder="0"
+            />
+            <p className="text-xs text-gray-400 mt-1">Nominal ini ditambahkan ke harga setiap produk saat kasir role Delivery melakukan transaksi.</p>
           </div>
           <button type="submit" disabled={savingSettings}
             className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 disabled:opacity-60">

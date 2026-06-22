@@ -34,6 +34,8 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const lastKeyTime = useRef<number>(0)
   const { profile } = useProfile()
   const isAdmin = profile?.role === 'admin'
+  const isDelivery = profile?.role === 'delivery'
+  const deliveryMarkup = isDelivery ? (storeSettings?.delivery_price_markup ?? 0) : 0
 
   const subtotal = cart.reduce((s, i) => s + i.subtotal, 0)
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0)
@@ -106,15 +108,16 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       toast.error(`Stok ${product.name} habis`)
       return
     }
+    const effectivePrice = product.price + deliveryMarkup
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id)
       if (existing) {
         return prev.map(i => i.product.id === product.id
-          ? { ...i, quantity: i.quantity + 1, subtotal: (i.quantity + 1) * i.product.price }
+          ? { ...i, quantity: i.quantity + 1, subtotal: (i.quantity + 1) * effectivePrice }
           : i
         )
       }
-      return [{ product, quantity: 1, subtotal: product.price }, ...prev]
+      return [{ product: { ...product, price: effectivePrice }, quantity: 1, subtotal: effectivePrice }, ...prev]
     })
     // Flash indicator
     if (lastAddedTimer.current) clearTimeout(lastAddedTimer.current)
@@ -147,6 +150,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       : i
     ))
   }
+
 
   function removeFromCart(productId: string) {
     setCart(prev => prev.filter(i => i.product.id !== productId))
