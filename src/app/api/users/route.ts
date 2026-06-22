@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
 
   const adminSupabase = getAdminClient()
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ error: 'Service role key tidak terkonfigurasi' }, { status: 500 })
+  }
+
   const { data: newUser, error: createError } = await adminSupabase.auth.admin.createUser({
     email,
     password,
@@ -48,5 +52,15 @@ export async function POST(req: NextRequest) {
   })
 
   if (createError) return NextResponse.json({ error: createError.message }, { status: 500 })
+
+  // Pastikan profile row ter-insert dengan role yang benar (trigger kadang lambat)
+  if (newUser?.user) {
+    await new Promise(r => setTimeout(r, 500))
+    const { error: profileError } = await adminSupabase
+      .from('profiles')
+      .upsert({ id: newUser.user.id, full_name, role: role || 'kasir', active: true })
+    if (profileError) console.error('Profile upsert error:', profileError.message)
+  }
+
   return NextResponse.json({ data: newUser }, { status: 201 })
 }
