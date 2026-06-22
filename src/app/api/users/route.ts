@@ -28,39 +28,47 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Service role key tidak terkonfigurasi di server' }, { status: 500 })
+    }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { email, password, full_name, role } = await req.json()
-  if (!email || !password || !full_name) return NextResponse.json({ error: 'Email, password, nama wajib diisi' }, { status: 400 })
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const adminSupabase = getAdminClient()
+    const { email, password, full_name, role } = await req.json()
+    if (!email || !password || !full_name) return NextResponse.json({ error: 'Email, password, nama wajib diisi' }, { status: 400 })
 
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: 'Service role key tidak terkonfigurasi' }, { status: 500 })
+    const adminSupabase = getAdminClient()
+
+    const { data: newUser, error: createError } = await adminSupabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name, role: role || 'kasir' },
+    })
+
+    if (createError) {
+      return NextResponse.json({ error: createError.message || String(createError) }, { status: 500 })
+    }
+
+    if (newUser?.user) {
+      await new Promise(r => setTimeout(r, 300))
+      const { error: profileError } = await adminSupabase
+        .from('profiles')
+        .upsert({ id: newUser.user.id, full_name, role: role || 'kasir', active: true })
+      if (profileError) {
+        return NextResponse.json({ error: `User dibuat tapi profile gagal: ${profileError.message}` }, { status: 500 })
+      }
+    }
+
+    return NextResponse.json({ data: { id: newUser.user?.id, email, full_name, role } }, { status: 201 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: `Server error: ${msg}` }, { status: 500 })
   }
-
-  const { data: newUser, error: createError } = await adminSupabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name, role: role || 'kasir' },
-  })
-
-  if (createError) return NextResponse.json({ error: createError.message }, { status: 500 })
-
-  // Pastikan profile row ter-insert dengan role yang benar (trigger kadang lambat)
-  if (newUser?.user) {
-    await new Promise(r => setTimeout(r, 500))
-    const { error: profileError } = await adminSupabase
-      .from('profiles')
-      .upsert({ id: newUser.user.id, full_name, role: role || 'kasir', active: true })
-    if (profileError) console.error('Profile upsert error:', profileError.message)
-  }
-
-  return NextResponse.json({ data: newUser }, { status: 201 })
 }
