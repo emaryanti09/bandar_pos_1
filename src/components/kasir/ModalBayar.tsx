@@ -34,7 +34,16 @@ export default function ModalBayar({ cart, subtotal, showOngkir = false, onClose
     }
 
     setLoading(true)
-    const items = cart.map(i => ({
+    type SaleItem = {
+      product_id: string | null
+      product_name: string
+      product_barcode: string | null
+      unit: string
+      price: number
+      quantity: number
+      subtotal: number
+    }
+    const items: SaleItem[] = cart.map(i => ({
       product_id: i.product.id,
       product_name: i.product.name,
       product_barcode: i.product.barcode,
