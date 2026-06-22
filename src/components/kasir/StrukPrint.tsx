@@ -345,76 +345,64 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full shadow-2xl max-w-[calc(100vw-32px)] md:max-w-xs">
+      <div className="bg-white rounded-2xl w-full shadow-2xl max-w-md">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-bold text-gray-900">Struk Pembayaran</h2>
-          {/* DIAGNOSTIK SEMENTARA: kotak hijau di mobile, merah di desktop (md) */}
-          <span className="px-2 py-1 rounded text-xs font-bold text-white bg-green-600 md:bg-red-600">
-            <span className="md:hidden">MOBILE</span>
-            <span className="hidden md:inline">DESKTOP</span>
-          </span>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        {/* Preview — default mobile (besar, lebar penuh), md: desktop (kecil) */}
-        <div className="bg-white w-full block px-4 pt-2 md:flex md:p-3 md:justify-center md:overflow-y-auto md:max-h-[55vh]">
+        {/* Preview — satu ukuran: besar & lebar penuh */}
+        <div className="bg-white w-full block px-4 pt-2 overflow-y-auto max-h-[60vh]">
           <div
             ref={previewRef}
-            className="text-black block w-full box-border font-bold bg-white text-[28px] md:text-[11px] md:max-w-[166px] leading-[1.5] px-0 pt-2 pb-6 md:px-1.5 md:pt-2 md:pb-4"
+            className="text-black block w-full box-border font-bold bg-white text-[22px] leading-[1.5] px-0 pt-2 pb-6"
             style={{ fontFamily: "'Courier New', monospace" }}
           >
             <div className="flex items-center gap-2 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO_URL} alt="logo" className="object-contain shrink-0 w-[180px] h-[240px] md:w-[68px] md:h-[91px]" />
-              <div className="font-bold leading-[1.3] text-[38px] md:text-[14px]">
+              <img src={LOGO_URL} alt="logo" className="object-contain shrink-0 w-[130px] h-[174px]" />
+              <div className="font-bold leading-[1.3] text-[30px]">
                 {storeName.split(' ').map((w, i) => <div key={i}>{w}</div>)}
               </div>
             </div>
-            {storeSettings?.address && <div className="text-center text-[26px] md:text-[10px]">{storeSettings.address}</div>}
-            {storeSettings?.whatsapp && <div className="text-center text-[26px] md:text-[10px]">WA: {storeSettings.whatsapp}</div>}
-            {/* separator tebal */}
-            <div className="border-t-[3px] border-black my-1.5 md:hidden" />
-            <div className="hidden md:block text-center overflow-hidden text-[10px] tracking-[-2px]">================================</div>
-            <table className="w-full text-[28px] md:text-[11px]">
+            {storeSettings?.address && <div className="text-center text-[20px]">{storeSettings.address}</div>}
+            {storeSettings?.whatsapp && <div className="text-center text-[20px]">WA: {storeSettings.whatsapp}</div>}
+            <div className="border-t-[3px] border-black my-1.5" />
+            <table className="w-full text-[22px]">
               <tbody>
                 <tr><td className="pr-1 whitespace-nowrap">No</td><td className="text-right">{transaction.invoice_no}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Kasir</td><td className="text-right">{transaction.profiles?.full_name || '-'}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Tgl</td><td className="text-right">{formatDate(transaction.created_at)}</td></tr>
               </tbody>
             </table>
-            {/* separator tipis */}
-            <div className="border-t-2 border-dashed border-black my-1.5 md:hidden" />
-            <div className="hidden md:block text-center overflow-hidden text-[10px] tracking-[-2px]">--------------------------------</div>
+            <div className="border-t-2 border-dashed border-black my-1.5" />
             <div className="space-y-1">
               {items.map((item, i) => (
                 <div key={i}>
-                  <div className="font-bold text-[28px] md:text-[11px]">{item.product_name}</div>
-                  <div className="flex justify-between text-[26px] md:text-[10px]">
+                  <div className="font-bold text-[22px]">{item.product_name}</div>
+                  <div className="flex justify-between text-[20px]">
                     <span>{item.quantity} x {formatRupiah(item.price)}</span>
                     <span className="font-bold">{formatRupiah(item.subtotal)}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="border-t-2 border-dashed border-black my-1.5 md:hidden" />
-            <div className="hidden md:block text-center overflow-hidden text-[10px] tracking-[-2px]">--------------------------------</div>
-            <div className="flex justify-between font-bold text-[33px] md:text-[13px]">
+            <div className="border-t-2 border-dashed border-black my-1.5" />
+            <div className="flex justify-between font-bold text-[26px]">
               <span>TOTAL</span><span>{formatRupiah(transaction.total)}</span>
             </div>
-            <div className="border-t-2 border-dashed border-black my-1.5 md:hidden" />
-            <div className="hidden md:block text-center overflow-hidden text-[10px] tracking-[-2px]">--------------------------------</div>
-            <div className="flex justify-between font-bold text-[28px] md:text-[11px]">
+            <div className="border-t-2 border-dashed border-black my-1.5" />
+            <div className="flex justify-between font-bold text-[22px]">
               <span>{transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span>
               <span>{formatRupiah(transaction.paid)}</span>
             </div>
             {transaction.payment_method === 'cash' && (
-              <div className="flex justify-between font-bold text-[28px] md:text-[11px]">
+              <div className="flex justify-between font-bold text-[22px]">
                 <span>Kembali</span><span>{formatRupiah(transaction.change)}</span>
               </div>
             )}
-            <div className="border-t-[3px] border-black my-1.5 md:hidden" />
-            <div className="hidden md:block text-center overflow-hidden text-[10px] tracking-[-2px]">================================</div>
-            <div className="text-center mt-1 text-[26px] md:text-[10px]">{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
+            <div className="border-t-[3px] border-black my-1.5" />
+            <div className="text-center mt-1 text-[20px]">{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
           </div>
         </div>
 
