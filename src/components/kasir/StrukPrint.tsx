@@ -358,7 +358,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           <div
             ref={previewRef}
             style={{
-              width: isMobile ? '100%' : '166px',
+              width: isMobile ? '460px' : '166px',
               fontFamily: "'Courier New', monospace",
               fontSize: isMobile ? 24 : 11,
               lineHeight: 1.5,
