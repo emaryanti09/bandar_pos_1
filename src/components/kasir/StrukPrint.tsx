@@ -347,7 +347,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-xs shadow-2xl">
+      <div className={`bg-white rounded-2xl w-full shadow-2xl ${isMobile ? 'max-w-[calc(100vw-32px)]' : 'max-w-xs'}`}>
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-bold text-gray-900">Struk Pembayaran</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
@@ -358,7 +358,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           <div
             ref={previewRef}
             style={{
-              width: isMobile ? '460px' : '166px',
+              width: isMobile ? 'calc(100vw - 56px)' : '166px',
               fontFamily: "'Courier New', monospace",
               fontSize: isMobile ? 24 : 11,
               lineHeight: 1.5,
