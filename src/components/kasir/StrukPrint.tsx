@@ -273,23 +273,6 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
   async function handleRawBT() {
     const text = buildStrukText(transaction, storeSettings)
-
-    // Coba rawbt: URI scheme dulu (Android, tidak perlu share dialog)
-    const encoded = encodeURIComponent(text)
-    const rawbtUri = `rawbt:base64,${btoa(unescape(encodeURIComponent(text)))}`
-
-    // Test apakah bisa buka URI (Android WebView / Chrome)
-    const isMobile = /android/i.test(navigator.userAgent)
-    if (isMobile) {
-      try {
-        window.location.href = rawbtUri
-        return
-      } catch {
-        // fallback ke share
-      }
-    }
-
-    // Fallback: share file .txt
     const filename = `struk-${transaction.invoice_no}.txt`
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
     const file = new File([blob], filename, { type: 'text/plain' })
@@ -307,7 +290,6 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
       URL.revokeObjectURL(url)
       toast.success('File struk tersimpan (.txt)')
     }
-    void encoded
   }
 
   function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
