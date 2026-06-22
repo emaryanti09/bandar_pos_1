@@ -205,9 +205,7 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   }
   lines.push(SEP)
   wrapCenter(footer, W).forEach(l => lines.push(l))
-  lines.push('')
-  lines.push('')
-  lines.push('')
+  lines.push('')  // 1 baris kosong untuk cut
 
   return lines.join('\n')
 }
