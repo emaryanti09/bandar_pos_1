@@ -379,7 +379,9 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
             </div>
             {storeSettings?.address && <div className="text-center" style={{fontSize: isMobile ? 26 : 10}}>{storeSettings.address}</div>}
             {storeSettings?.whatsapp && <div className="text-center" style={{fontSize: isMobile ? 26 : 10}}>WA: {storeSettings.whatsapp}</div>}
-            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 26 : 10, letterSpacing:-2}}>================================</div>
+            {isMobile
+              ? <div style={{borderTop:'3px solid #000', margin:'6px 0'}} />
+              : <div className="text-center overflow-hidden" style={{fontSize:10, letterSpacing:-2}}>================================</div>}
             <table className="w-full" style={{fontSize: isMobile ? 28 : 11}}>
               <tbody>
                 <tr><td className="pr-1 whitespace-nowrap">No</td><td className="text-right">{transaction.invoice_no}</td></tr>
@@ -387,7 +389,9 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
                 <tr><td className="pr-1 whitespace-nowrap">Tgl</td><td className="text-right">{formatDate(transaction.created_at)}</td></tr>
               </tbody>
             </table>
-            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 26 : 10, letterSpacing:-2}}>--------------------------------</div>
+            {isMobile
+              ? <div style={{borderTop:'2px dashed #000', margin:'6px 0'}} />
+              : <div className="text-center overflow-hidden" style={{fontSize:10, letterSpacing:-2}}>--------------------------------</div>}
             <div className="space-y-1">
               {items.map((item, i) => (
                 <div key={i}>
@@ -399,11 +403,15 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
                 </div>
               ))}
             </div>
-            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 26 : 10, letterSpacing:-2}}>--------------------------------</div>
+            {isMobile
+              ? <div style={{borderTop:'2px dashed #000', margin:'6px 0'}} />
+              : <div className="text-center overflow-hidden" style={{fontSize:10, letterSpacing:-2}}>--------------------------------</div>}
             <div className="flex justify-between font-bold" style={{fontSize: isMobile ? 33 : 13}}>
               <span>TOTAL</span><span>{formatRupiah(transaction.total)}</span>
             </div>
-            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 26 : 10, letterSpacing:-2}}>--------------------------------</div>
+            {isMobile
+              ? <div style={{borderTop:'2px dashed #000', margin:'6px 0'}} />
+              : <div className="text-center overflow-hidden" style={{fontSize:10, letterSpacing:-2}}>--------------------------------</div>}
             <div className="flex justify-between font-bold" style={{fontSize: isMobile ? 28 : 11}}>
               <span>{transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span>
               <span>{formatRupiah(transaction.paid)}</span>
@@ -413,7 +421,9 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
                 <span>Kembali</span><span>{formatRupiah(transaction.change)}</span>
               </div>
             )}
-            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 26 : 10, letterSpacing:-2}}>================================</div>
+            {isMobile
+              ? <div style={{borderTop:'3px solid #000', margin:'6px 0'}} />
+              : <div className="text-center overflow-hidden" style={{fontSize:10, letterSpacing:-2}}>================================</div>}
             <div className="text-center mt-1" style={{fontSize: isMobile ? 26 : 10}}>{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
           </div>
         </div>
