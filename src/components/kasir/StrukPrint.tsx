@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { X, Printer, Eye, Share2, Download } from 'lucide-react'
+import { X, Printer, Eye, Share2, Download, BluetoothConnected } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import type { Transaction, StoreSettings } from '@/types'
@@ -128,6 +128,57 @@ function buildStrukHtml(transaction: Transaction, storeSettings: StoreSettings |
 </html>`
 }
 
+function pad(left: string, right: string, width = 32): string {
+  const gap = width - left.length - right.length
+  return left + (gap > 0 ? ' '.repeat(gap) : ' ') + right
+}
+
+function center(text: string, width = 32): string {
+  const pad = Math.max(0, Math.floor((width - text.length) / 2))
+  return ' '.repeat(pad) + text
+}
+
+function buildStrukText(transaction: Transaction, storeSettings: StoreSettings | null): string {
+  const items = transaction.transaction_items || []
+  const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
+  const address = storeSettings?.address || ''
+  const wa = storeSettings?.whatsapp || ''
+  const footer = storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'
+  const W = 32
+  const SEP = '='.repeat(W)
+  const DASH = '-'.repeat(W)
+
+  const lines: string[] = []
+  lines.push(center(storeName, W))
+  if (address) lines.push(center(address, W))
+  if (wa) lines.push(center('WA: ' + wa, W))
+  lines.push(SEP)
+  lines.push(pad('No', transaction.invoice_no, W))
+  lines.push(pad('Kasir', transaction.profiles?.full_name || '-', W))
+  lines.push(pad('Tgl', formatDate(transaction.created_at), W))
+  lines.push(DASH)
+
+  items.forEach(item => {
+    lines.push(item.product_name)
+    lines.push(pad(`${item.quantity} x ${formatRupiah(item.price)}`, formatRupiah(item.subtotal), W))
+  })
+
+  lines.push(DASH)
+  lines.push(pad('TOTAL', formatRupiah(transaction.total), W))
+  lines.push(DASH)
+  lines.push(pad(transaction.payment_method === 'cash' ? 'Cash' : 'QRIS', formatRupiah(transaction.paid), W))
+  if (transaction.payment_method === 'cash') {
+    lines.push(pad('Kembali', formatRupiah(transaction.change), W))
+  }
+  lines.push(SEP)
+  lines.push(center(footer, W))
+  lines.push('')
+  lines.push('')
+  lines.push('')
+
+  return lines.join('\n')
+}
+
 export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -190,6 +241,28 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
       }
     } catch {
       toast.error('Gagal membuat screenshot')
+    }
+  }
+
+  async function handleRawBT() {
+    const text = buildStrukText(transaction, storeSettings)
+    const filename = `struk-${transaction.invoice_no}.txt`
+    const blob = new Blob([text], { type: 'text/plain' })
+    const file = new File([blob], filename, { type: 'text/plain' })
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
+      } catch {
+        // user cancel
+      }
+    } else {
+      // Desktop fallback: download txt
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = filename; a.click()
+      URL.revokeObjectURL(url)
+      toast.success('File struk tersimpan (.txt)')
     }
   }
 
@@ -267,23 +340,29 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         </div>
 
         <div className="p-4 border-t space-y-2">
-          {/* Baris 1: Share / Preview */}
+          {/* Baris 1: RawBT / Share WA */}
           <div className="flex gap-2">
+            <button onClick={handleRawBT}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 text-sm">
+              <BluetoothConnected className="w-4 h-4" /> RawBT
+            </button>
             <button onClick={handleShare}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 text-sm">
               {canShare ? <Share2 className="w-4 h-4" /> : <Download className="w-4 h-4" />}
               {canShare ? 'Kirim / WA' : 'Simpan'}
             </button>
+          </div>
+          {/* Baris 2: Preview / Print */}
+          <div className="flex gap-2">
             <button onClick={handlePreview}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-red-200 text-red-600 rounded-xl font-medium hover:bg-red-50 text-sm">
               <Eye className="w-4 h-4" /> Preview
             </button>
+            <button onClick={handlePrint}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 text-sm">
+              <Printer className="w-4 h-4" /> Print 58mm
+            </button>
           </div>
-          {/* Baris 2: Print */}
-          <button onClick={handlePrint}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 text-sm">
-            <Printer className="w-4 h-4" /> Print 58mm
-          </button>
           <button onClick={onClose}
             className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm">
             Tutup
