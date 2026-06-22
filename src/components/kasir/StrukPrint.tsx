@@ -354,11 +354,13 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         </div>
 
         {/* Preview */}
-        <div className={`bg-white flex ${isMobile ? 'px-4 pt-2' : 'p-3 justify-center overflow-y-auto max-h-[55vh]'}`}>
+        <div className={`bg-white ${isMobile ? 'block px-4 pt-2' : 'flex p-3 justify-center overflow-y-auto max-h-[55vh]'}`}>
           <div
             ref={previewRef}
             style={{
+              display: 'block',
               width: isMobile ? '100%' : '166px',
+              boxSizing: 'border-box',
               fontFamily: "'Courier New', monospace",
               fontSize: isMobile ? 28 : 11,
               lineHeight: 1.5,
