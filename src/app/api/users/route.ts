@@ -47,29 +47,27 @@ export async function POST(req: NextRequest) {
     const adminSupabase = getAdminClient()
     const finalRole = role || 'kasir'
 
-    // Buat user TANPA role di metadata — biar trigger handle_new_user insert
-    // dengan role default 'kasir' (pasti lolos constraint). Role asli di-update sesudahnya.
+    // Trigger handle_new_user (DB) otomatis insert ke profiles dengan role dari metadata.
     const { data: newUser, error: createError } = await adminSupabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name },
+      user_metadata: { full_name, role: finalRole },
     })
 
     if (createError) {
-      const ce = createError as unknown as { message?: string; status?: number; code?: string; name?: string }
-      const detail = ce.message || ce.code || ce.name || `status ${ce.status}` || 'unknown'
-      return NextResponse.json({ error: `createUser: ${detail}`, status: ce.status, code: ce.code }, { status: 500 })
+      const ce = createError as unknown as { message?: string; status?: number; code?: string }
+      const detail = ce.message || ce.code || `status ${ce.status}` || 'Gagal membuat user'
+      return NextResponse.json({ error: detail }, { status: 500 })
     }
 
+    // Pastikan profile sinkron (jaga-jaga jika trigger tidak jalan / role berbeda).
     if (newUser?.user) {
-      // Update role + full_name + active (trigger sudah insert baris default)
       const { error: profileError } = await adminSupabase
         .from('profiles')
-        .update({ full_name, role: finalRole, active: true })
-        .eq('id', newUser.user.id)
+        .upsert({ id: newUser.user.id, full_name, role: finalRole, active: true })
       if (profileError) {
-        return NextResponse.json({ error: `profile update: ${profileError.message || profileError.code || 'unknown'}` }, { status: 500 })
+        return NextResponse.json({ error: profileError.message || 'Gagal simpan profile' }, { status: 500 })
       }
     }
 
