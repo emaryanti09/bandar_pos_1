@@ -276,23 +276,29 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
   }
 
   async function handleRawBT() {
-    const text = buildStrukText(transaction, storeSettings)
-    const filename = `struk-${transaction.invoice_no}.txt`
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-    const file = new File([blob], filename, { type: 'text/plain' })
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
-      } catch {
-        // user cancel
-      }
-    } else {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url; a.download = filename; a.click()
-      URL.revokeObjectURL(url)
-      toast.success('File struk tersimpan (.txt)')
+    if (!previewRef.current) return
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(previewRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 3,
+        useCORS: true,
+        logging: false,
+      })
+      const filename = `rawbt-${transaction.invoice_no}.png`
+      canvas.toBlob(async (blob) => {
+        if (!blob) { toast.error('Gagal membuat gambar'); return }
+        const file = new File([blob], filename, { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: `Struk ${transaction.invoice_no}` })
+          } catch { /* user cancel */ }
+        } else {
+          downloadCanvas(canvas, filename)
+        }
+      }, 'image/png')
+    } catch {
+      toast.error('Gagal membuat gambar struk')
     }
   }
 
