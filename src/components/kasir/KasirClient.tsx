@@ -260,7 +260,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 text-sm truncate">{p.name}</p>
                     <p className="text-xs text-gray-400">
-                      {formatRupiah(p.price)} · Stok: {habis ? <span className="text-red-500">Habis</span> : p.stock}
+                      {formatRupiah(p.price + deliveryMarkup)} · Stok: {habis ? <span className="text-red-500">Habis</span> : p.stock}
                     </p>
                   </div>
                   <ScanLine className="w-4 h-4 text-gray-300 shrink-0" />
