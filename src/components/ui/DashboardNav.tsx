@@ -26,6 +26,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const navItems = profile.role === 'admin' ? adminNav : kasirNav
+  const roleLabel = profile.role === 'admin' ? 'Admin' : profile.role === 'delivery' ? 'Delivery' : 'Kasir'
 
   async function handleLogout() {
     const supabase = createClient()
@@ -72,7 +73,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
         <div className="hidden md:flex items-center gap-3">
           <div className="text-right text-sm">
             <p className="font-medium">{profile.full_name}</p>
-            <p className="text-red-200 text-xs capitalize">{profile.role}</p>
+            <p className="text-red-200 text-xs">{roleLabel}</p>
           </div>
           <button
             onClick={handleLogout}
@@ -94,7 +95,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
         <div className="md:hidden border-t border-red-600 bg-red-700 px-4 pb-4">
           <div className="pt-3 pb-2 text-sm">
             <p className="font-medium">{profile.full_name}</p>
-            <p className="text-red-200 text-xs capitalize">{profile.role}</p>
+            <p className="text-red-200 text-xs">{roleLabel}</p>
           </div>
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link

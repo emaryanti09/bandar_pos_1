@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Save, Plus, Edit2, Trash2, Eye, EyeOff, UserCheck, UserX } from 'lucide-react'
 import toast from 'react-hot-toast'
-import type { StoreSettings, Profile } from '@/types'
+import type { StoreSettings, Profile, UserRole } from '@/types'
 
 interface Props {
   initialSettings: StoreSettings | null
@@ -99,7 +99,7 @@ export default function PengaturanClient({ initialSettings }: Props) {
           {users.map(u => (
             <div key={u.id} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-red-100 text-red-700' : u.role === 'delivery' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
                   {u.full_name?.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -203,8 +203,9 @@ function ModalUser({ user, onClose, onSaved }: { user: Profile | null; onClose: 
           </div>
           <div>
             <label className="label">Role *</label>
-            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as 'admin' | 'kasir' }))} className="input">
+            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as UserRole }))} className="input">
               <option value="kasir">Kasir</option>
+              <option value="delivery">Delivery</option>
               <option value="admin">Admin</option>
             </select>
           </div>
