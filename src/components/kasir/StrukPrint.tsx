@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { X, Printer, Eye, Share2, Download, BluetoothConnected } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
@@ -244,6 +244,8 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
   const previewRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
 
   function handlePrint() {
     const html = buildStrukHtml(transaction, storeSettings)
@@ -355,54 +357,62 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         <div className="p-3 overflow-y-auto max-h-[55vh] bg-white flex justify-center">
           <div
             ref={previewRef}
-            style={{ width: '166px', fontFamily: "'Courier New', monospace", fontSize: 11, lineHeight: 1.5, fontWeight: 'bold', backgroundColor: '#fff', padding: '8px 6px 16px 8px' }}
+            style={{
+              width: isMobile ? '249px' : '166px',
+              fontFamily: "'Courier New', monospace",
+              fontSize: isMobile ? 16 : 11,
+              lineHeight: 1.5,
+              fontWeight: 'bold',
+              backgroundColor: '#fff',
+              padding: isMobile ? '12px 9px 24px 12px' : '8px 6px 16px 8px',
+            }}
             className="text-black"
           >
             <div className="flex items-center gap-2 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO_URL} alt="logo" style={{ width: 68, height: 91, objectFit: 'contain', flexShrink: 0 }} />
-              <div className="font-bold" style={{fontSize:14, lineHeight:1.3}}>
+              <img src={LOGO_URL} alt="logo" style={{ width: isMobile ? 102 : 68, height: isMobile ? 136 : 91, objectFit: 'contain', flexShrink: 0 }} />
+              <div className="font-bold" style={{fontSize: isMobile ? 21 : 14, lineHeight:1.3}}>
                 {storeName.split(' ').map((w, i) => <div key={i}>{w}</div>)}
               </div>
             </div>
-            {storeSettings?.address && <div className="text-center" style={{fontSize:10}}>{storeSettings.address}</div>}
-            {storeSettings?.whatsapp && <div className="text-center" style={{fontSize:10}}>WA: {storeSettings.whatsapp}</div>}
-            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>================================</div>
-            <table className="w-full" style={{fontSize:11}}>
+            {storeSettings?.address && <div className="text-center" style={{fontSize: isMobile ? 15 : 10}}>{storeSettings.address}</div>}
+            {storeSettings?.whatsapp && <div className="text-center" style={{fontSize: isMobile ? 15 : 10}}>WA: {storeSettings.whatsapp}</div>}
+            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 15 : 10, letterSpacing:-1}}>================================</div>
+            <table className="w-full" style={{fontSize: isMobile ? 16 : 11}}>
               <tbody>
                 <tr><td className="pr-1 whitespace-nowrap">No</td><td className="text-right">{transaction.invoice_no}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Kasir</td><td className="text-right">{transaction.profiles?.full_name || '-'}</td></tr>
                 <tr><td className="pr-1 whitespace-nowrap">Tgl</td><td className="text-right">{formatDate(transaction.created_at)}</td></tr>
               </tbody>
             </table>
-            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
+            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 15 : 10, letterSpacing:-1}}>--------------------------------</div>
             <div className="space-y-1">
               {items.map((item, i) => (
                 <div key={i}>
-                  <div className="font-bold" style={{fontSize:11}}>{item.product_name}</div>
-                  <div className="flex justify-between" style={{fontSize:10}}>
+                  <div className="font-bold" style={{fontSize: isMobile ? 16 : 11}}>{item.product_name}</div>
+                  <div className="flex justify-between" style={{fontSize: isMobile ? 15 : 10}}>
                     <span>{item.quantity} x {formatRupiah(item.price)}</span>
                     <span className="font-bold">{formatRupiah(item.subtotal)}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
-            <div className="flex justify-between font-bold" style={{fontSize:13}}>
+            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 15 : 10, letterSpacing:-1}}>--------------------------------</div>
+            <div className="flex justify-between font-bold" style={{fontSize: isMobile ? 19 : 13}}>
               <span>TOTAL</span><span>{formatRupiah(transaction.total)}</span>
             </div>
-            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>--------------------------------</div>
-            <div className="flex justify-between font-bold" style={{fontSize:11}}>
+            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 15 : 10, letterSpacing:-1}}>--------------------------------</div>
+            <div className="flex justify-between font-bold" style={{fontSize: isMobile ? 16 : 11}}>
               <span>{transaction.payment_method === 'cash' ? 'Cash' : 'QRIS'}</span>
               <span>{formatRupiah(transaction.paid)}</span>
             </div>
             {transaction.payment_method === 'cash' && (
-              <div className="flex justify-between font-bold" style={{fontSize:11}}>
+              <div className="flex justify-between font-bold" style={{fontSize: isMobile ? 16 : 11}}>
                 <span>Kembali</span><span>{formatRupiah(transaction.change)}</span>
               </div>
             )}
-            <div className="text-center overflow-hidden" style={{fontSize:10,letterSpacing:-1}}>================================</div>
-            <div className="text-center mt-1" style={{fontSize:10}}>{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
+            <div className="text-center overflow-hidden" style={{fontSize: isMobile ? 15 : 10, letterSpacing:-1}}>================================</div>
+            <div className="text-center mt-1" style={{fontSize: isMobile ? 15 : 10}}>{storeSettings?.footer_note || 'Terima kasih sudah berbelanja!'}</div>
           </div>
         </div>
 
