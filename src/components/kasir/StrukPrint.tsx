@@ -348,6 +348,11 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
       <div className="bg-white rounded-2xl w-full shadow-2xl max-w-[calc(100vw-32px)] md:max-w-xs">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-bold text-gray-900">Struk Pembayaran</h2>
+          {/* DIAGNOSTIK SEMENTARA: kotak hijau di mobile, merah di desktop (md) */}
+          <span className="px-2 py-1 rounded text-xs font-bold text-white bg-green-600 md:bg-red-600">
+            <span className="md:hidden">MOBILE</span>
+            <span className="hidden md:inline">DESKTOP</span>
+          </span>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
