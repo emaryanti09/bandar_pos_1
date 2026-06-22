@@ -11,9 +11,13 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '50')
   const offset = (page - 1) * limit
 
+  // Saat search (live di kasir) jangan hitung count exact — itu memaksa
+  // full COUNT(*) tiap ketikan dan jadi bottleneck utama.
+  const wantCount = !search
+
   let query = supabase
     .from('products')
-    .select('*', { count: 'exact' })
+    .select('*', wantCount ? { count: 'exact' } : undefined)
     .eq('active', true)
     .order('name')
 
