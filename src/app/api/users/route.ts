@@ -54,11 +54,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (createError) {
-      const e = createError as unknown as Record<string, unknown>
-      return NextResponse.json({
-        error: 'createUser gagal',
-        detail: { message: createError.message, code: e.code, status: e.status, name: createError.name }
-      }, { status: 500 })
+      return NextResponse.json({ error: createError.message || createError.name || 'Gagal membuat user' }, { status: 500 })
     }
 
     if (newUser?.user) {
@@ -67,15 +63,7 @@ export async function POST(req: NextRequest) {
         .from('profiles')
         .upsert({ id: newUser.user.id, full_name, role: role || 'kasir', active: true })
       if (profileError) {
-        return NextResponse.json({
-          error: `Profile upsert gagal`,
-          detail: {
-            message: profileError.message,
-            code: profileError.code,
-            hint: profileError.hint,
-            details: profileError.details,
-          }
-        }, { status: 500 })
+        return NextResponse.json({ error: profileError.message || profileError.code || 'Gagal simpan profile' }, { status: 500 })
       }
     }
 
