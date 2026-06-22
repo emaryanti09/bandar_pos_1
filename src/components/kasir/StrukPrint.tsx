@@ -138,6 +138,16 @@ function center(text: string, width = 32): string {
   return ' '.repeat(pad) + text
 }
 
+function formatTgl(dateStr: string): string {
+  const d = new Date(dateStr)
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yy = String(d.getFullYear()).slice(2)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mn = String(d.getMinutes()).padStart(2, '0')
+  return `${dd}/${mm}/${yy} ${hh}:${mn}`
+}
+
 function buildStrukText(transaction: Transaction, storeSettings: StoreSettings | null): string {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
@@ -150,16 +160,34 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
 
   const lines: string[] = []
   lines.push(center(storeName, W))
-  if (address) lines.push(center(address, W))
+  if (address) {
+    // Wrap address per 32 char
+    const words = address.split(' ')
+    let line = ''
+    words.forEach(w => {
+      if ((line + ' ' + w).trim().length <= W) {
+        line = (line + ' ' + w).trim()
+      } else {
+        lines.push(center(line, W))
+        line = w
+      }
+    })
+    if (line) lines.push(center(line, W))
+  }
   if (wa) lines.push(center('WA: ' + wa, W))
   lines.push(SEP)
   lines.push(pad('No', transaction.invoice_no, W))
   lines.push(pad('Kasir', transaction.profiles?.full_name || '-', W))
-  lines.push(pad('Tgl', formatDate(transaction.created_at), W))
+  lines.push(pad('Tgl', formatTgl(transaction.created_at), W))
   lines.push(DASH)
 
   items.forEach(item => {
-    lines.push(item.product_name)
+    // Wrap nama produk jika > W
+    if (item.product_name.length <= W) {
+      lines.push(item.product_name)
+    } else {
+      lines.push(item.product_name.slice(0, W))
+    }
     lines.push(pad(`${item.quantity} x ${formatRupiah(item.price)}`, formatRupiah(item.subtotal), W))
   })
 
@@ -172,9 +200,8 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   }
   lines.push(SEP)
   lines.push(center(footer, W))
-  lines.push('')
-  lines.push('')
-  lines.push('')
+  // Feed 4 baris untuk cut — tidak lebih agar tidak jadi halaman ke-2
+  lines.push('\n\n\n\n')
 
   return lines.join('\n')
 }
@@ -246,8 +273,25 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
 
   async function handleRawBT() {
     const text = buildStrukText(transaction, storeSettings)
+
+    // Coba rawbt: URI scheme dulu (Android, tidak perlu share dialog)
+    const encoded = encodeURIComponent(text)
+    const rawbtUri = `rawbt:base64,${btoa(unescape(encodeURIComponent(text)))}`
+
+    // Test apakah bisa buka URI (Android WebView / Chrome)
+    const isMobile = /android/i.test(navigator.userAgent)
+    if (isMobile) {
+      try {
+        window.location.href = rawbtUri
+        return
+      } catch {
+        // fallback ke share
+      }
+    }
+
+    // Fallback: share file .txt
     const filename = `struk-${transaction.invoice_no}.txt`
-    const blob = new Blob([text], { type: 'text/plain' })
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
     const file = new File([blob], filename, { type: 'text/plain' })
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -257,13 +301,13 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
         // user cancel
       }
     } else {
-      // Desktop fallback: download txt
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url; a.download = filename; a.click()
       URL.revokeObjectURL(url)
       toast.success('File struk tersimpan (.txt)')
     }
+    void encoded
   }
 
   function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
