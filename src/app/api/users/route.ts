@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authErr } = await supabase.auth.getUser()
+    if (authErr) return NextResponse.json({ error: 'Auth error: ' + authErr.message }, { status: 500 })
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
@@ -53,7 +54,15 @@ export async function POST(req: NextRequest) {
     })
 
     if (createError) {
-      return NextResponse.json({ error: createError.message || String(createError) }, { status: 500 })
+      return NextResponse.json({
+        error: 'createUser gagal',
+        detail: {
+          message: createError.message,
+          code: (createError as Record<string, unknown>).code,
+          status: (createError as Record<string, unknown>).status,
+          name: createError.name,
+        }
+      }, { status: 500 })
     }
 
     if (newUser?.user) {
