@@ -29,7 +29,7 @@ export default function LaporanClient({ storeSettings }: { storeSettings: StoreS
   const loadData = useCallback(async () => {
     setLoading(true)
     if (tab === 'transaksi') {
-      const res = await fetch(`/api/laporan?type=transaksi&date_from=${dateFrom}T00:00:00&date_to=${dateTo}`)
+      const res = await fetch(`/api/laporan?type=transaksi&date_from=${dateFrom}&date_to=${dateTo}`)
       const data = await res.json()
       // Sort terbaru di atas
       const sorted = (data.data || []).slice().sort(
