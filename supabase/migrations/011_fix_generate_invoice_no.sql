@@ -1,5 +1,6 @@
--- Fix generate_invoice_no: ganti count(*)+1 dengan max sequence
--- agar tidak duplikat meski ada data yang dihapus atau race condition
+-- Fix generate_invoice_no:
+-- 1. Pakai max sequence (bukan count) agar tidak duplikat jika data dihapus
+-- 2. Pakai timezone Asia/Jakarta (UTC+7) agar tanggal invoice sesuai WIB
 create or replace function generate_invoice_no()
 returns text as $$
 declare
@@ -7,9 +8,8 @@ declare
   seq int;
   inv text;
 begin
-  today := to_char(now(), 'YYYYMMDD');
+  today := to_char(now() at time zone 'Asia/Jakarta', 'YYYYMMDD');
 
-  -- Ambil nomor urut tertinggi dari invoice hari ini, bukan count
   select coalesce(
     max(
       cast(
