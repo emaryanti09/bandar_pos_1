@@ -8,6 +8,7 @@ import { formatRupiah } from '@/lib/utils'
 import { useProfile } from '@/hooks/useProfile'
 import ModalTambahProduk from './ModalTambahProduk'
 import ModalBayar from './ModalBayar'
+import ModalEditTransaksi from './ModalEditTransaksi'
 import StrukPrint from './StrukPrint'
 import ModalBukaBungkus from './ModalBukaBungkus'
 import BarcodeScannerModal from '@/components/shared/BarcodeScannerModal'
@@ -23,6 +24,7 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
   const [showStruk, setShowStruk] = useState(false)
   const [showBukaBungkus, setShowBukaBungkus] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+  const [showEditTransaksi, setShowEditTransaksi] = useState(false)
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
   const [newBarcodeForAdd, setNewBarcodeForAdd] = useState('')
   const [lastAdded, setLastAdded] = useState<string | null>(null)
@@ -412,6 +414,20 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
           transaction={lastTransaction}
           storeSettings={storeSettings}
           onClose={() => setShowStruk(false)}
+          onEdit={() => { setShowStruk(false); setShowEditTransaksi(true) }}
+        />
+      )}
+
+      {showEditTransaksi && lastTransaction && (
+        <ModalEditTransaksi
+          transaction={lastTransaction}
+          onClose={() => setShowEditTransaksi(false)}
+          onSuccess={updated => {
+            setLastTransaction(updated)
+            setShowEditTransaksi(false)
+            setShowStruk(true)
+            toast.success('Transaksi berhasil diperbarui')
+          }}
         />
       )}
 

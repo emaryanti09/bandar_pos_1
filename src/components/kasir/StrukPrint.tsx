@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { X, Printer, Share2, Download } from 'lucide-react'
+import { X, Printer, Share2, Download, Pencil } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import type { Transaction, StoreSettings } from '@/types'
@@ -10,6 +10,7 @@ interface Props {
   transaction: Transaction
   storeSettings: StoreSettings | null
   onClose: () => void
+  onEdit?: () => void
 }
 
 const LOGO_URL = '/logo_hitam.png'
@@ -210,7 +211,7 @@ function buildStrukText(transaction: Transaction, storeSettings: StoreSettings |
   return lines.join('\n')
 }
 
-export default function StrukPrint({ transaction, storeSettings, onClose }: Props) {
+export default function StrukPrint({ transaction, storeSettings, onClose, onEdit }: Props) {
   const items = transaction.transaction_items || []
   const storeName = storeSettings?.store_name || 'Bandar Frozen Food'
   const previewRef = useRef<HTMLDivElement>(null)
@@ -340,7 +341,7 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
           </div>
         </div>
 
-        <div className="p-4 border-t shrink-0">
+        <div className="p-4 border-t shrink-0 space-y-2">
           <div className="flex gap-2">
             <button onClick={handleShare}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 text-sm">
@@ -352,6 +353,14 @@ export default function StrukPrint({ transaction, storeSettings, onClose }: Prop
               <Printer className="w-4 h-4" /> Print 58mm
             </button>
           </div>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="w-full flex items-center justify-center gap-2 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 text-sm"
+            >
+              <Pencil className="w-4 h-4" /> Edit Transaksi
+            </button>
+          )}
         </div>
       </div>
     </div>
