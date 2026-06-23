@@ -14,12 +14,9 @@ export async function GET(req: NextRequest) {
       .select(`*, profiles(full_name), transaction_items(*)`)
       .order('created_at', { ascending: false })
 
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo) {
-      const end = new Date(dateTo)
-      end.setDate(end.getDate() + 1)
-      query = query.lt('created_at', end.toISOString())
-    }
+    // Filter pakai offset WIB (+07:00) agar jam 00.00–06.59 WIB masuk hari yang benar
+    if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00+07:00`)
+    if (dateTo) query = query.lt('created_at', `${dateTo}T23:59:59+07:00`)
 
     const { data, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
