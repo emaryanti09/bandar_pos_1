@@ -29,6 +29,11 @@ export async function POST(req: NextRequest) {
     .upsert(products, { onConflict: 'barcode', ignoreDuplicates: false })
     .select()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23505' && error.message.includes('barcode')) {
+      return NextResponse.json({ error: 'Barcode duplikat ditemukan di file import. Pastikan setiap barcode unik.' }, { status: 409 })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ data, count: data?.length })
 }

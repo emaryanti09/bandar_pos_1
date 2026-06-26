@@ -53,6 +53,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { data, error } = await supabase.from('products').insert(body).select().single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23505' && error.message.includes('barcode')) {
+      return NextResponse.json({ error: 'Barcode sudah digunakan produk lain. Gunakan barcode yang berbeda atau kosongkan.' }, { status: 409 })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ data }, { status: 201 })
 }
