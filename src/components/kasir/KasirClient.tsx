@@ -91,11 +91,9 @@ export default function KasirClient({ storeSettings }: { storeSettings: StoreSet
       addToCart(data)
     } else {
       if (isAdmin) {
-        setNewBarcodeForAdd(code)
-        setShowTambah(true)
-        toast(`Barcode ${code} tidak ditemukan. Tambah produk baru?`, { icon: '🔍' })
+        toast.error(`Produk dengan barcode "${code}" tidak ada di daftar produk. Silakan tambahkan produk terlebih dahulu di menu Produk.`)
       } else {
-        toast.error(`Barcode ${code} tidak ditemukan`)
+        toast.error(`Produk dengan barcode "${code}" tidak ada di daftar produk. Tanyakan ke admin untuk menambahkan.`)
       }
     }
   }
